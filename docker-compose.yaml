@@ -8,5 +8,3 @@ services:
       - DESTINATION_GROUP_ID=${DESTINATION_GROUP_ID}
     volumes:
       - .:/app
-    ports:
-      - "8000:80"
