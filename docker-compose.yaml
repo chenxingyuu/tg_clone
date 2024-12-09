@@ -9,3 +9,8 @@ services:
       - DESTINATION_GROUP_ID=${DESTINATION_GROUP_ID}
     command: python3 /app/main.py
     restart: on-failure
+    volumes:
+      - app_data:/app
+
+volumes:
+  app_data:

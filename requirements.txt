@@ -1,2 +1,4 @@
 telethon==1.38.1
 python-dotenv==1.0.1
+ghkit==0.0.3
+schedule==1.2.2
