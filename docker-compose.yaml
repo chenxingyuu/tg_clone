@@ -1,0 +1,12 @@
+services:
+  app:
+    build: .
+    environment:
+      - API_ID=${API_ID}
+      - API_HASH=${API_HASH}
+      - SOURCE_GROUP_ID=${SOURCE_GROUP_ID}
+      - DESTINATION_GROUP_ID=${DESTINATION_GROUP_ID}
+    volumes:
+      - .:/app
+    ports:
+      - "8000:80"
