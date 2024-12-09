@@ -30,5 +30,5 @@ async def main():
 
 
 # 运行客户端
-with client:
+with client.start(phone=os.getenv('PHONE')) as client:
     client.loop.run_until_complete(main())

@@ -4,6 +4,7 @@ services:
     environment:
       - API_ID=${API_ID}
       - API_HASH=${API_HASH}
+      - PHONE=${PHONE}
       - SOURCE_GROUP_ID=${SOURCE_GROUP_ID}
       - DESTINATION_GROUP_ID=${DESTINATION_GROUP_ID}
     command: python3 /app/main.py
