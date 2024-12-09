@@ -6,5 +6,5 @@ services:
       - API_HASH=${API_HASH}
       - SOURCE_GROUP_ID=${SOURCE_GROUP_ID}
       - DESTINATION_GROUP_ID=${DESTINATION_GROUP_ID}
-    volumes:
-      - .:/app
+    command: python3 /app/main.py
+    restart: on-failure
