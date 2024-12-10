@@ -52,11 +52,17 @@ class SecurityConfig:
 
 
 @dataclass
+class GitHubConfig:
+    webhook_secret: str
+
+
+@dataclass
 class Settings:
     app: AppConfig
     mysql: MySQLConfig
     redis: RedisConfig
     security: SecurityConfig
+    github: GitHubConfig
 
 
 def get_config_path() -> str:
@@ -106,11 +112,14 @@ def read_config() -> Settings:
     security_config = SecurityConfig(**config["security"])
     security_config.token_expire_days = config.getint("security", "token_expire_days")
 
+    github_config = GitHubConfig(**config["github"])
+
     return Settings(
         app=app_config,
         mysql=mysql_config,
         redis=redis_config,
         security=security_config,
+        github=github_config,
     )
 
 

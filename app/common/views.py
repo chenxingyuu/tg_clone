@@ -1,5 +1,11 @@
-from fastapi import APIRouter, HTTPException
+import hashlib
+import hmac
+import subprocess
 
+from fastapi import APIRouter, HTTPException
+from fastapi import Request, Header
+
+from cores.config import settings
 from cores.response import ResponseModel
 
 common_router = APIRouter()
@@ -14,15 +20,6 @@ async def healthy():
     return ResponseModel()
 
 
-import hmac
-import hashlib
-import subprocess
-from fastapi import Request, Header
-
-# GitHub Webhook secret
-GITHUB_SECRET = "your_github_secret"
-
-
 @common_router.post("/github-webhook")
 async def github_webhook(request: Request, x_hub_signature_256: str = Header(None)):
     """
@@ -35,7 +32,7 @@ async def github_webhook(request: Request, x_hub_signature_256: str = Header(Non
     # 获取请求体
     body = await request.body()
     # 计算签名
-    signature = "sha256=" + hmac.new(GITHUB_SECRET.encode(), body, hashlib.sha256).hexdigest()
+    signature = "sha256=" + hmac.new(settings.github.webhook_secret.encode(), body, hashlib.sha256).hexdigest()
 
     # 比较签名
     if not hmac.compare_digest(signature, x_hub_signature_256):

@@ -22,3 +22,6 @@ default_db = 0
 secret_key = ade16819dbb77c427f54a30f8e35924b8bb56872429e79c33b9940b913e33aa6
 algorithm = HS256
 token_expire_days = 60
+
+[github]
+webhook_secret = 123456
