@@ -16,8 +16,47 @@ class AppConfig:
 
 
 @dataclass
+class MySQLConfig:
+    host: str
+    port: int
+    user: str
+    password: str
+    database: str
+
+    @property
+    def db_url(self):
+        return f"mysql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}"
+
+    @property
+    def db_url_pymysql(self):
+        return f'mysql+pymysql://{self.user}:{self.password}@{self.host}:{self.port}/{self.database}'
+
+
+@dataclass
+class RedisConfig:
+    host: str
+    port: int
+    password: str
+    default_db: int
+
+    @property
+    def db_url(self):
+        return f"redis://:{self.password}@{self.host}:{self.port}/{self.default_db}"
+
+
+@dataclass
+class SecurityConfig:
+    secret_key: str
+    algorithm: str
+    token_expire_days: int
+
+
+@dataclass
 class Settings:
     app: AppConfig
+    mysql: MySQLConfig
+    redis: RedisConfig
+    security: SecurityConfig
 
 
 def get_config_path() -> str:
@@ -62,8 +101,16 @@ def read_config() -> Settings:
     app_config.debug = config.getboolean("app", "debug")
     app_config.port = config.getint("app", "port")
 
+    mysql_config = MySQLConfig(**config["mysql"])
+    redis_config = RedisConfig(**config["redis"])
+    security_config = SecurityConfig(**config["security"])
+    security_config.token_expire_days = config.getint("security", "token_expire_days")
+
     return Settings(
         app=app_config,
+        mysql=mysql_config,
+        redis=redis_config,
+        security=security_config,
     )
 
 

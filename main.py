@@ -1,36 +1,65 @@
-import os
+import contextlib
+import logging
+from typing import AsyncIterator
 
-from dotenv import load_dotenv
-from telethon import TelegramClient
+import uvicorn
+from fastapi import FastAPI
+from starlette.middleware.cors import CORSMiddleware
+from tortoise.contrib.fastapi import register_tortoise
 
-from cores.log import LOG
+from cores.config import settings
+from cores.model import TORTOISE_ORM, init_db, close_db
+from cores.scope import init_scopes
+from cores.sio import attach_socketio
 
-# 加载配置
-load_dotenv()
-api_id = int(os.getenv('API_ID'))
-api_hash = os.getenv('API_HASH')
-
-# 创建 Telegram 客户端
-client = TelegramClient('session_name', api_id, api_hash, timeout=3)
-
-
-async def main():
-    # 获取当前登录用户的信息
-    me = await client.get_me()
-
-    LOG.info("User Details:")
-    LOG.info(f"ID: {me.id}")
-    LOG.info(f"Username: {me.username}")
-    LOG.info(f"Phone: {me.phone}")
-    LOG.info(f"First Name: {me.first_name}")
-    LOG.info(f"Last Name: {me.last_name}")
-
-    # 获取最近对话
-    LOG.info("Recent Dialogs:")
-    async for dialog in client.iter_dialogs(limit=10):  # 获取最近 10 个会话
-        LOG.info(f"{dialog.name} ({dialog.entity.id})")
+logging.basicConfig(level=logging.DEBUG)
 
 
-# 运行客户端
-with client.start(phone=os.getenv('PHONE')) as client:
-    client.loop.run_until_complete(main())
+@contextlib.asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    # 应用启动时的初始化
+    await init_db()
+    # 在这里注册 Tortoise，以确保在路由中使用 Tortoise 之前数据库已经初始化
+    register_tortoise(
+        _app,
+        config=TORTOISE_ORM,
+        generate_schemas=False,
+        add_exception_handlers=True,
+    )
+
+    # 初始化全局的 scopes
+    await init_scopes()
+
+    # 包含路由
+    from app.common.urls import router as common_router
+    from app.system.urls import router as system_router
+    from app.ws.urls import router as sio_router
+
+    _app.include_router(common_router, prefix=settings.app.api_version)
+    _app.include_router(system_router, prefix=settings.app.api_version)
+    _app.include_router(sio_router, prefix=settings.app.api_version)
+
+    yield
+    # 应用关闭时的清理
+    await close_db()
+
+
+app = FastAPI(
+    title=settings.app.project_name,
+    debug=settings.app.debug,
+    lifespan=lifespan,
+)
+
+attach_socketio(app)
+
+# 添加 CORS 中间件
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # 允许所有来源
+    allow_credentials=True,
+    allow_methods=["*"],  # 允许所有方法
+    allow_headers=["*"],  # 允许所有头部
+)
+
+if __name__ == "__main__":
+    uvicorn.run(app, host=settings.app.host, port=settings.app.port)

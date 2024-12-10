@@ -4,3 +4,21 @@ api_version = /api/v1
 debug = true
 host = 0.0.0.0
 port = 8000
+
+[mysql]
+host = 127.0.0.1
+port = 3306
+user = root
+password =
+database = fastapi_template
+
+[redis]
+host = localhost
+port = 6379
+password = root
+default_db = 0
+
+[security]
+secret_key = ade16819dbb77c427f54a30f8e35924b8bb56872429e79c33b9940b913e33aa6
+algorithm = HS256
+token_expire_days = 60
