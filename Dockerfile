@@ -2,6 +2,9 @@
 FROM python:3.10-slim
 LABEL authors="chenxingyu"
 
+# Install git to clone the repository
+RUN apt-get update && apt-get install -y git
+
 # Set the working directory in the container
 WORKDIR /app
 
