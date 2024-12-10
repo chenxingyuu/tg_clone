@@ -48,6 +48,8 @@ app = FastAPI(
     title=settings.app.project_name,
     debug=settings.app.debug,
     lifespan=lifespan,
+    docs_url=settings.app.doc_path,
+    redoc_url=None,
 )
 
 attach_socketio(app)

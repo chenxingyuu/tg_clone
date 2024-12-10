@@ -10,6 +10,7 @@ from cores.log import LOG
 class AppConfig:
     project_name: str = "My FastAPI Project"
     api_version: str = "/api/v1"
+    doc_path: str = "/docs"
     debug: bool = False
     host: str = "0.0.0.0"
     port: int = 8000
