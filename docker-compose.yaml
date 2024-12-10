@@ -1,16 +1,12 @@
 services:
   app:
     image: tg_clone:1.0.0
-    environment:
-      - API_ID=${API_ID}
-      - API_HASH=${API_HASH}
-      - PHONE=${PHONE}
-      - SOURCE_GROUP_ID=${SOURCE_GROUP_ID}
-      - DESTINATION_GROUP_ID=${DESTINATION_GROUP_ID}
     command: python3 /app/main.py
     restart: on-failure
     volumes:
-      - app_data:/app
+      - ./config.ini:/app/config.ini:ro
+    ports:
+      - "8080:8080"
 
 volumes:
   app_data:
