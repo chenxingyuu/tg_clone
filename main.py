@@ -50,6 +50,7 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url=settings.app.doc_path,
     redoc_url=None,
+    openapi_url=f"{settings.app.doc_path}.json",
 )
 
 attach_socketio(app)
