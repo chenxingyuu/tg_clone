@@ -1,9 +1,12 @@
 import asyncio
 import traceback
+from inspect import isawaitable
 
 import schedule
 from schedule import Job
+from telethon import TelegramClient, errors
 
+from cores.config import settings
 from cores.log import LOG
 
 
@@ -76,6 +79,42 @@ class BaseScript(metaclass=ScriptMeta):
         # 飞书通知
         # alarm_msg = f"脚本异常: {class_name} \n\n{error_stack}\n 告警时间: {datetime.now()}"
         # feishu_alarm(alarm_msg)
+
+
+class BaseTgScript(BaseScript):
+    session_file = settings.tg.session_file
+    api_id = settings.tg.api_id
+    api_hash = settings.tg.api_hash
+    phone = settings.tg.phone
+
+    def __init__(self):
+        self.client = TelegramClient(self.session_file, self.api_id, self.api_hash, timeout=3)
+
+    async def init_client(self):
+        try:
+            conn = self.client.start(phone=self.phone)
+            if isawaitable(conn):
+                await conn
+
+            LOG.info("Client started successfully.")
+            me = await self.client.get_me()
+            LOG.info("User Details:")
+            LOG.info(f"ID: {me.id}")
+            LOG.info(f"Username: {me.username}")
+            LOG.info(f"Phone: {me.phone}")
+
+        except errors.SessionPasswordNeededError:
+            LOG.error("Two-step verification is enabled. Please provide the password.")
+        except errors.PhoneCodeInvalidError:
+            LOG.error("The provided phone code is invalid.")
+        except errors.PhoneNumberInvalidError:
+            LOG.error("The provided phone number is invalid.")
+        except Exception as e:
+            LOG.error(f"An unexpected error occurred: {e}")
+
+    async def shutdown(self):
+        await self.client.disconnect()
+        LOG.info("Client disconnected.")
 
 
 class DemoAsyncScript(BaseScript):
