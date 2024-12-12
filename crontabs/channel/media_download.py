@@ -19,7 +19,7 @@ class ChannelMediaDownload(BaseTgScript):
         channel = await self.client.get_entity(-1002210339889)
         # 遍历频道的所有文件，过滤出包含 media 的消息
         async for message in self.client.iter_messages(channel, reverse=True, filter=InputMessagesFilterVideo):
-            LOG.info(f"Message: {message.text}")
+            LOG.info(f"Message: {message.id} {message.text}")
 
 
 async def main():
