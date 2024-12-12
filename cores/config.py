@@ -63,6 +63,7 @@ class TGConfig:
     api_hash: str
     phone: str
     session_file: str
+    file_save_path: str
 
 
 @dataclass

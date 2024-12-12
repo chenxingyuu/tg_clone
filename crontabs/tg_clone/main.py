@@ -1,57 +1,26 @@
 import asyncio
-from inspect import isawaitable
 
 import schedule
-from telethon import TelegramClient, errors
+from telethon.tl.types import InputMessagesFilterVideo
 
 from cores.config import settings
 from cores.log import LOG
-from crontabs.base import BaseScript
+from crontabs.base import BaseTgScript
 
 
-class TGClone(BaseScript):
+class TGClone(BaseTgScript):
     schedule_job = schedule.every(1).seconds
-
-    def __init__(self):
-        self.api_id = settings.tg.api_id
-        self.api_hash = settings.tg.api_hash
-        self.phone = settings.tg.phone
-        self.session_file = settings.tg.session_file
-
-        self.client = TelegramClient(self.session_file, self.api_id, self.api_hash, timeout=3)
-
-    async def init_client(self):
-        try:
-            conn = self.client.start(phone=self.phone)
-            if isawaitable(conn):
-                await conn
-
-            LOG.info("Client started successfully.")
-            me = await self.client.get_me()
-            LOG.info("User Details:")
-            LOG.info(f"ID: {me.id}")
-            LOG.info(f"Username: {me.username}")
-            LOG.info(f"Phone: {me.phone}")
-            return True
-
-        except errors.SessionPasswordNeededError:
-            LOG.error("Two-step verification is enabled. Please provide the password.")
-        except errors.PhoneCodeInvalidError:
-            LOG.error("The provided phone code is invalid.")
-        except errors.PhoneNumberInvalidError:
-            LOG.error("The provided phone number is invalid.")
-        except Exception as e:
-            LOG.error(f"An unexpected error occurred: {e}")
-        finally:
-            await self.shutdown()
-            return False
-
-    async def shutdown(self):
-        await self.client.disconnect()
-        LOG.info("Client disconnected.")
 
     async def __call__(self, *args, **kwargs):
         LOG.info("Running script...")
+        # 查询 id 为 -1002210339889 的 chanel
+        channel = await self.client.get_entity(-1002210339889)
+        LOG.info(f"Channel: {channel.title}")
+        # 下载频道的所有文件
+        async for message in self.client.iter_messages(channel, reverse=True, filter=InputMessagesFilterVideo):
+            LOG.info(f"Message: {message.id} {message.text}")
+            if message.media:
+                await self.client.download_media(message.media, file=f"{settings.tg.file_save_path}/{message.id}")
 
 
 async def main():
