@@ -1,0 +1,20 @@
+name: Build Docker Image
+
+on:
+  push:
+    branches:
+      - main  # 在推送到 main 分支时触发
+
+jobs:
+  docker:
+    runs-on: self-hosted
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. 构建 Docker 镜像
+      - name: Build Docker image
+        run: |
+          docker build -t chenxingyu/tg_clone:latest .
