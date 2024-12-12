@@ -1,6 +1,7 @@
 import asyncio
 
 import schedule
+from telethon.tl.types import InputMessagesFilterVideo
 
 from cores.log import LOG
 from crontabs.base import BaseTgScript
@@ -17,7 +18,7 @@ class ChannelMediaDownload(BaseTgScript):
         # 查询 id 为 -1002210339889 的 channel
         channel = await self.client.get_entity(-1002210339889)
         # 遍历频道的所有文件，过滤出包含 media 的消息
-        async for message in self.client.iter_messages(channel, reverse=True, filter=lambda m: m.media):
+        async for message in self.client.iter_messages(channel, reverse=True, filter=InputMessagesFilterVideo):
             LOG.info(f"Message: {message.text}")
 
 
