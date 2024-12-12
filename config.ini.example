@@ -26,3 +26,9 @@ token_expire_days = 60
 
 [github]
 webhook_secret = 123456
+
+[tg]
+api_id = 12345
+api_hash = 1234567890abcdef1234567890abcdef
+phone = +1234567890
+session_file = /app/tg_session

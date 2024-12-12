@@ -58,12 +58,21 @@ class GitHubConfig:
 
 
 @dataclass
+class TGConfig:
+    api_id: int
+    api_hash: str
+    phone: str
+    session_file: str
+
+
+@dataclass
 class Settings:
     app: AppConfig
     mysql: MySQLConfig
     redis: RedisConfig
     security: SecurityConfig
     github: GitHubConfig
+    tg: TGConfig
 
 
 def get_config_path() -> str:
@@ -115,12 +124,15 @@ def read_config() -> Settings:
 
     github_config = GitHubConfig(**config["github"])
 
+    tg_config = TGConfig(**config["tg"])
+
     return Settings(
         app=app_config,
         mysql=mysql_config,
         redis=redis_config,
         security=security_config,
         github=github_config,
+        tg=tg_config
     )
 
 
