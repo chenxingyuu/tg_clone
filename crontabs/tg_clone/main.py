@@ -1,36 +1,52 @@
-import os
+import asyncio
+from inspect import isawaitable
 
-from dotenv import load_dotenv
-from telethon import TelegramClient
+from telethon import TelegramClient, errors
 
+from cores.config import settings
 from cores.log import LOG
 
-# 加载配置
-load_dotenv()
-api_id = int(os.getenv('API_ID'))
-api_hash = os.getenv('API_HASH')
+API_ID = settings.tg.api_id
+API_HASH = settings.tg.api_hash
+PHONE = settings.tg.phone
+SESSION_FILE = settings.tg.session_file
 
-# 创建 Telegram 客户端
-client = TelegramClient('session_name', api_id, api_hash, timeout=3)
+# Create Telegram client
+client = TelegramClient(SESSION_FILE, API_ID, API_HASH, timeout=3)
 
 
 async def main():
-    # 获取当前登录用户的信息
-    me = await client.get_me()
+    try:
+        # Attempt to start the client and get user info
+        conn = client.start(phone=PHONE)
+        if isawaitable(conn):
+            await conn
 
-    LOG.info("User Details:")
-    LOG.info(f"ID: {me.id}")
-    LOG.info(f"Username: {me.username}")
-    LOG.info(f"Phone: {me.phone}")
-    LOG.info(f"First Name: {me.first_name}")
-    LOG.info(f"Last Name: {me.last_name}")
+        me = await client.get_me()
 
-    # 获取最近对话
-    LOG.info("Recent Dialogs:")
-    async for dialog in client.iter_dialogs(limit=10):  # 获取最近 10 个会话
-        LOG.info(f"{dialog.name} ({dialog.entity.id})")
+        LOG.info("User Details:")
+        LOG.info(f"ID: {me.id}")
+        LOG.info(f"Username: {me.username}")
+        LOG.info(f"Phone: {me.phone}")
+        LOG.info(f"First Name: {me.first_name}")
+        LOG.info(f"Last Name: {me.last_name}")
+
+        # Get recent dialogs
+        LOG.info("Recent Dialogs:")
+        async for dialog in client.iter_dialogs(limit=10):
+            LOG.info(f"{dialog.name} ({dialog.entity.id})")
+
+    except errors.SessionPasswordNeededError:
+        LOG.error("Two-step verification is enabled. Please provide the password.")
+    except errors.PhoneCodeInvalidError:
+        LOG.error("The provided phone code is invalid.")
+    except errors.PhoneNumberInvalidError:
+        LOG.error("The provided phone number is invalid.")
+    except Exception as e:
+        LOG.error(f"An unexpected error occurred: {e}")
+    finally:
+        await client.disconnect()
 
 
-# 运行客户端
-with client.start(phone=os.getenv('PHONE')) as client:
-    client.loop.run_until_complete(main())
+if __name__ == '__main__':
+    asyncio.run(main())
