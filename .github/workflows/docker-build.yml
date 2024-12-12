@@ -16,4 +16,4 @@ jobs:
 
       # 2. 构建 Docker 镜像
       - name: Build Docker image
-        run: ./docker-build.sh
+        run: sh ./docker-build.sh
