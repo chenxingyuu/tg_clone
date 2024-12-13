@@ -7,7 +7,17 @@ from crontabs.base import BaseTgScript
 
 
 def progress_callback(current, total):
-    LOG.info(f"Uploaded {current} out of {total} bytes: {current / total * 100:.2f}%")
+    """进度条回调函数"""
+    # 自动转换单位
+    units = ['B', 'KB', 'MB', 'GB', 'TB']
+    total_unit, current_unit = 0, 0
+    while total > 1024:
+        total /= 1024
+        total_unit += 1
+    while current > 1024:
+        current /= 1024
+        current_unit += 1
+    LOG.info(f"Uploaded {current:.2f} {units[current_unit]}/{total:.2f} {units[total_unit]} ")
 
 
 class ChannelMedisSend(BaseTgScript):
