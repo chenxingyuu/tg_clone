@@ -6,6 +6,10 @@ from cores.log import LOG
 from crontabs.base import BaseTgScript
 
 
+def progress_callback(current, total):
+    LOG.info(f"Uploaded {current} out of {total} bytes: {current / total * 100:.2f}%")
+
+
 class ChannelMedisSend(BaseTgScript):
     schedule_job = schedule.every(10000).days
 
@@ -18,10 +22,15 @@ class ChannelMedisSend(BaseTgScript):
         channel = await self.client.get_entity(-1002435566667)
         # 往频道发送消息
         await self.client.send_message(channel, "Hello, World!")
-        # 发送文件
-        await self.client.send_file(channel, "README.md")
-        # 发送大文件
-        await self.client.send_file(channel, "README.md", force_document=True)
+        # 发送视频文件，显示进度条
+        await self.client.send_file(
+            channel,
+            file="/app/data/3.mp4",
+            progress_callback=progress_callback,
+            background=True,
+            supports_streaming=True
+        )
+        LOG.info("Send message and file to channel.")
 
 
 async def main():
