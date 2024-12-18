@@ -11,7 +11,7 @@ AccountCreate = pydantic_model_creator(
     Account,
     name="AccountCreate",
     include=(
-        "name", "type", "manufacturer", "access_type", "ip", "port", "mac",
+        "name", "phone", "password", "api_id", "api_hash"
     ),
 )
 
