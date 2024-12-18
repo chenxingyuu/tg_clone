@@ -14,7 +14,7 @@ account_router = APIRouter()
     "",
     summary="创建TG账户",
     response_model=ResponseModel[AccountDetail],
-    dependencies=[Security(get_current_active_user, scopes=["aris:account:create"])],
+    dependencies=[Security(get_current_active_user, scopes=["tg:account:create"])],
 )
 async def create_account(account: AccountCreate):
     """
