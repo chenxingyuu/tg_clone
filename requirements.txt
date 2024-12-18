@@ -14,3 +14,4 @@ aiomysql==0.2.0
 aerich==0.7.2
 python-jose==3.3.0
 python-multipart==0.0.19
+bcrypt==4.2.1
