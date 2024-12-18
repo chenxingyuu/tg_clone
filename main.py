@@ -33,10 +33,12 @@ async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
     # 包含路由
     from app.common.urls import router as common_router
     from app.system.urls import router as system_router
+    from app.tg.urls import router as tg_router
     from app.ws.urls import router as sio_router
 
     _app.include_router(common_router, prefix=settings.app.api_version)
     _app.include_router(system_router, prefix=settings.app.api_version)
+    _app.include_router(tg_router, prefix=settings.app.api_version)
     _app.include_router(sio_router, prefix=settings.app.api_version)
 
     yield
