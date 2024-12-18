@@ -53,3 +53,11 @@ class Menu(Model):
 
     class Meta:
         table = "system_menus"
+
+
+class Config(Model):
+    name = fields.CharField(max_length=50, unique=True)
+    data = fields.JSONField(description="Config data")
+
+    class Meta:
+        table = "system_configs"
