@@ -64,6 +64,7 @@ class TGConfig:
     phone: str
     session_file: str
     file_save_path: str
+    session_path: str
 
 
 @dataclass
