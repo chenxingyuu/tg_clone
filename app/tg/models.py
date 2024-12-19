@@ -27,7 +27,7 @@ class Dialog(Model):
     """
     对话表
     """
-    title = fields.CharField(max_length=50)
+    title = fields.CharField(max_length=50, null=True)
     username = fields.CharField(max_length=50, null=True)
     type = fields.IntEnumField(enum_type=DialogType, default=DialogType.USER)
     status = fields.BooleanField(default=True)
