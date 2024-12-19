@@ -18,7 +18,7 @@ class AccountLogin(BaseDBScript):
     """
 
     @classmethod
-    def get_client(cls, account: Account):
+    def get_client(cls, account: Account) -> TelegramClient:
         session = os.path.join(settings.tg.session_path, f"{account.phone}.session")
         return TelegramClient(
             session=session,
@@ -33,18 +33,25 @@ class AccountLogin(BaseDBScript):
         for account in account_list:
             # 获取客户端
             client = self.get_client(account)
-            client.start(phone=account.phone, force_sms=True)
 
-            conn = client.start(phone=account.phone)
+            # 如果 session 文件不存在，则需要重新登录
+            LOG.info(f"Start client. Account: {account.phone}")
+
+            conn = client.start(phone=account.phone, force_sms=True)
             if isawaitable(conn):
                 await conn
 
-            LOG.info("Client started successfully.")
+            LOG.info(f"Client started successfully. Account: {account.phone}")
             me = await client.get_me()
             LOG.info(me.to_dict())
 
-    async def login(self, *args, **kwargs):
-        pass
+            # 保存账号信息
+            account.username = me.username or ""
+            account.first_name = me.first_name or ""
+            account.last_name = me.last_name or ""
+            account.tg_id = me.id
+            await account.save()
+            LOG.info(f"Account saved. Account: {account}")
 
 
 async def main():
