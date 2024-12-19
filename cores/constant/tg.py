@@ -8,3 +8,5 @@ class DialogType(IntEnum):
     USER = 1
     GROUP = 2
     CHANNEL = 3
+    CHAT = 4
+    CHAT_FORBIDDEN = 5
