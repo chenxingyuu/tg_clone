@@ -27,13 +27,20 @@ class AccountChannelInfoUpdate(BaseDBScript, TGClientMethod):
                 channel = await client.get_entity(dialog.id)
                 LOG.info(channel.to_dict())
                 # 保存频道信息
-                channel_info = await Channel.get_or_none(tg_id=channel.id)
-                if not channel_info:
-                    channel_info = Channel()
-                channel_info.title = channel.title
-                channel_info.tg_id = channel.id
-                channel_info.username = channel.username
-                channel_info.account_id = account.id
+                if channel_info := await Channel.get_or_none(tg_id=channel.id):
+                    LOG.info(f"Channel info exists. Channel.title: {channel_info.title}")
+                    channel_info.title = channel.title
+                    channel_info.tg_id = channel.id
+                    channel_info.username = channel.username
+                    channel_info.account_id = account.id
+                else:
+                    LOG.info(f"Channel info not exists. Channel.title: {channel.title}")
+                    channel_info = Channel(
+                        username=channel.username,
+                        tg_id=channel.id,
+                        title=channel.title,
+                        account_id=account.id,
+                    )
                 await channel_info.save()
                 LOG.info(f"Channel info saved. Channel: {channel_info}")
 
