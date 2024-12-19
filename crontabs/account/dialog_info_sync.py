@@ -8,9 +8,9 @@ from cores.log import LOG
 from crontabs.base import TGClientMethod, BaseDBScript
 
 
-class AccountChannelInfoUpdate(BaseDBScript, TGClientMethod):
+class AccountDialogInfoSync(BaseDBScript, TGClientMethod):
     """
-    更新账号频道信息
+    同步账号对话信息
     """
 
     def __init__(self):
@@ -75,7 +75,7 @@ class AccountChannelInfoUpdate(BaseDBScript, TGClientMethod):
 
 
 async def main():
-    server = AccountChannelInfoUpdate()
+    server = AccountDialogInfoSync()
 
     # 初始化数据库
     await server.init_db()
