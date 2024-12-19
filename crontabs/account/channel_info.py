@@ -1,6 +1,6 @@
 import asyncio
 
-from telethon.tl.types import Chat, ChatForbidden
+from telethon.tl.types import Chat, ChatForbidden, User, Channel
 
 from app.tg.models import Account, Dialog
 from cores.constant.tg import DialogType
@@ -22,12 +22,12 @@ class AccountChannelInfoUpdate(BaseDBScript, TGClientMethod):
             return DialogType.CHAT
         elif isinstance(dialog, ChatForbidden):
             return DialogType.CHAT_FORBIDDEN
-        elif dialog.is_user:
+        elif isinstance(dialog, User):
             return DialogType.USER
-        elif dialog.is_group:
-            return DialogType.GROUP
-        else:
+        elif isinstance(dialog, Channel):
             return DialogType.CHANNEL
+        else:
+            return DialogType.GROUP
 
     async def update_channel_info(self, account: Account):
         # 获取客户端
@@ -42,7 +42,7 @@ class AccountChannelInfoUpdate(BaseDBScript, TGClientMethod):
             LOG.info(f"Dialog: {dialog_entity.to_dict()}")
 
             # 获取对话类型
-            dialog_type = self.get_dialog_type(dialog)
+            dialog_type = self.get_dialog_type(dialog_entity)
             # 获取对话标题和用户名
             if dialog_type in (DialogType.CHAT, DialogType.CHAT_FORBIDDEN):
                 dialog_title, dialog_username = dialog_entity.title
