@@ -30,7 +30,7 @@ async def create_account(account: AccountCreate):
     "",
     summary="获取TG账户列表",
     response_model=ResponseModel[PageModel[AccountDetail]],
-    dependencies=[Security(get_current_active_user, scopes=["aris:account:read"])],
+    dependencies=[Security(get_current_active_user, scopes=["tg:account:read"])],
 )
 async def list_accounts(
     account_filter: ListAccountFilterSet = Depends(),
