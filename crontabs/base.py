@@ -1,4 +1,5 @@
 import asyncio
+import os
 import traceback
 from inspect import isawaitable
 
@@ -7,6 +8,7 @@ from schedule import Job
 from telethon import TelegramClient, errors
 from tortoise import Tortoise
 
+from app.tg.models import Account
 from cores.config import settings
 from cores.log import LOG
 from cores.model import TORTOISE_ORM
@@ -134,6 +136,44 @@ class BaseDBScript(BaseScript):
     async def close_db(cls):
         """关闭 Tortoise ORM 连接"""
         await Tortoise.close_connections()
+
+
+class TGClientMethod:
+    @classmethod
+    def get_client(cls, account: Account) -> TelegramClient:
+        """
+        获取客户端
+        :param account:
+        :return:
+        """
+        session = os.path.join(settings.tg.session_path, f"{account.phone}.session")
+        return TelegramClient(
+            session=session,
+            api_id=account.api_id,
+            api_hash=account.api_hash,
+            timeout=3
+        )
+
+    @classmethod
+    async def start_client(cls, client: TelegramClient, account: Account, code_callback):
+        """
+        启动客户端
+        :param client:
+        :param account:
+        :param code_callback:
+        :return:
+        """
+        if account.password:
+            LOG.info(f"Start client with password. Account: {account.phone}")
+            conn = client.start(phone=account.phone, password=account.password, code_callback=code_callback)
+        else:
+            LOG.info(f"Start client with code. Account: {account.phone}", code_callback=code_callback)
+            conn = client.start(phone=account.phone)
+
+        if isawaitable(conn):
+            await conn
+
+        LOG.info(f"Client started successfully. Account: {account.phone}")
 
 
 class DemoAsyncScript(BaseScript):
