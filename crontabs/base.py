@@ -5,9 +5,11 @@ from inspect import isawaitable
 import schedule
 from schedule import Job
 from telethon import TelegramClient, errors
+from tortoise import Tortoise
 
 from cores.config import settings
 from cores.log import LOG
+from cores.model import TORTOISE_ORM
 
 
 class ScriptMeta(type):
@@ -88,7 +90,12 @@ class BaseTgScript(BaseScript):
     phone = settings.tg.phone
 
     def __init__(self):
-        self.client = TelegramClient(self.session_file, self.api_id, self.api_hash, timeout=3)
+        self.client = TelegramClient(
+            session=self.session_file,
+            api_id=self.api_id,
+            api_hash=self.api_hash,
+            timeout=3
+        )
 
     async def init_client(self):
         try:
@@ -115,6 +122,18 @@ class BaseTgScript(BaseScript):
     async def shutdown(self):
         await self.client.disconnect()
         LOG.info("Client disconnected.")
+
+
+class BaseDBScript(BaseScript):
+    @classmethod
+    async def init_db(cls):
+        """初始化 Tortoise ORM"""
+        await Tortoise.init(config=TORTOISE_ORM)
+
+    @classmethod
+    async def close_db(cls):
+        """关闭 Tortoise ORM 连接"""
+        await Tortoise.close_connections()
 
 
 class DemoAsyncScript(BaseScript):
