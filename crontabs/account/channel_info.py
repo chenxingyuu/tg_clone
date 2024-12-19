@@ -37,8 +37,12 @@ class AccountChannelInfoUpdate(BaseDBScript, TGClientMethod):
 
             # 获取对话类型
             dialog_type = self.get_dialog_type(dialog)
-            dialog_title = dialog.name
-            dialog_username = dialog_entity.username
+            if dialog_type == DialogType.USER:
+                dialog_title = dialog_entity.first_name
+                dialog_username = dialog_entity.title
+            else:
+                dialog_title = dialog_entity.title
+                dialog_username = dialog_entity.username
 
             # 判断是否存在
             dialog_info, created = await Dialog.update_or_create(
