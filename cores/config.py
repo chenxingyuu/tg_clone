@@ -68,6 +68,12 @@ class TGConfig:
 
 
 @dataclass
+class FeishuConfig:
+    webhook_url: str
+    secret: str
+
+
+@dataclass
 class Settings:
     app: AppConfig
     mysql: MySQLConfig
@@ -75,6 +81,7 @@ class Settings:
     security: SecurityConfig
     github: GitHubConfig
     tg: TGConfig
+    feishu: FeishuConfig
 
 
 def get_config_path() -> str:
@@ -127,6 +134,7 @@ def read_config() -> Settings:
     github_config = GitHubConfig(**config["github"])
 
     tg_config = TGConfig(**config["tg"])
+    feishu_config = FeishuConfig(**config["feishu"])
 
     return Settings(
         app=app_config,
@@ -134,7 +142,8 @@ def read_config() -> Settings:
         redis=redis_config,
         security=security_config,
         github=github_config,
-        tg=tg_config
+        tg=tg_config,
+        feishu=feishu_config,
     )
 
 

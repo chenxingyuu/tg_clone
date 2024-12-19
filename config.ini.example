@@ -33,4 +33,8 @@ api_hash = 1234567890abcdef1234567890abcdef
 phone = +1234567890
 session_file = /app/tg_session
 file_save_path = /app/data
-session_path = /app/data/session
+session_path = /app/sessions
+
+[feishu]
+webhook_url =
+secret =
