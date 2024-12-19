@@ -37,7 +37,11 @@ class AccountLogin(BaseDBScript):
             # 如果 session 文件不存在，则需要重新登录
             LOG.info(f"Start client. Account: {account.phone}")
 
-            conn = client.start(phone=account.phone, force_sms=True)
+            if account.password:
+                conn = client.start(phone=account.phone, password=account.password)
+            else:
+                conn = client.start(phone=account.phone)
+
             if isawaitable(conn):
                 await conn
 
