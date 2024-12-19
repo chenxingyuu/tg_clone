@@ -27,7 +27,7 @@ class Channel(Model):
     频道表
     """
     title = fields.CharField(max_length=50)
-    username = fields.CharField(max_length=50, unique=True, null=False)
+    username = fields.CharField(max_length=50, null=True)
     status = fields.BooleanField(default=True)
     tg_id = fields.CharField(max_length=50, unique=True, null=False)
     account = fields.ForeignKeyField("models.Account", related_name="channels")
