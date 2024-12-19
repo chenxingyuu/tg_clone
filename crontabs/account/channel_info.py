@@ -1,6 +1,7 @@
 import asyncio
 
-from app.tg.models import Account, Channel
+from app.tg.models import Account, Dialog
+from cores.constant.tg import DialogType
 from cores.log import LOG
 from crontabs.base import TGClientMethod, BaseDBScript
 
@@ -13,6 +14,15 @@ class AccountChannelInfoUpdate(BaseDBScript, TGClientMethod):
     def __init__(self):
         pass
 
+    @classmethod
+    def get_dialog_type(cls, dialog):
+        if dialog.is_user:
+            return DialogType.USER
+        elif dialog.is_group:
+            return DialogType.GROUP
+        else:
+            return DialogType.CHANNEL
+
     async def update_channel_info(self, account: Account):
         # 获取客户端
         client = self.get_client(account)
@@ -21,29 +31,26 @@ class AccountChannelInfoUpdate(BaseDBScript, TGClientMethod):
         await self.start_client(client=client, account=account)
         # 获取频道信息
         async for dialog in client.iter_dialogs():
-            # 判断是否是频道
-            if dialog.is_channel:
-                # 转成频道
-                channel = await client.get_entity(dialog.id)
-                LOG.info(channel.to_dict())
-                # 保存频道信息
-                if channel_info := await Channel.get_or_none(tg_id=channel.id, account_id=account.id):
-                    LOG.info(f"Channel info exists. Channel.title: {channel_info.title}")
-                    channel_info.title = channel.title
-                    channel_info.tg_id = channel.id
-                    channel_info.username = channel.username
-                    channel_info.account_id = account.id
-                else:
-                    LOG.info(f"Channel info not exists. Channel.title: {channel.title}")
-                    channel_info = Channel(
-                        username=channel.username,
-                        tg_id=channel.id,
-                        title=channel.title,
-                        account_id=account.id,
-                    )
-                await channel_info.save()
-                LOG.info(f"Channel info saved. Channel: {channel_info}")
+            # 转换为实体
+            dialog_entity = await client.get_entity(dialog.id)
 
+            # 获取对话类型
+            dialog_type = self.get_dialog_type(dialog)
+
+            # 判断是否存在
+            dialog_info, created = await Dialog.update_or_create(
+                tg_id=dialog.id,
+                account_id=account.id,
+                defaults={
+                    "title": dialog_entity.title,
+                    "username": dialog_entity.username,
+                    "type": dialog_type,
+                }
+            )
+            if created:
+                LOG.info(f"Dialog created. Dialog: {dialog_info}, Created: {created}")
+            else:
+                LOG.info(f"Dialog updated. Dialog: {dialog_info}, Created: {created}")
         client.disconnect()
 
     async def __call__(self, *args, **kwargs):

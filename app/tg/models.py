@@ -1,5 +1,6 @@
 from tortoise import fields
 
+from cores.constant.tg import DialogType
 from cores.model import Model
 
 
@@ -22,18 +23,19 @@ class Account(Model):
         table = "tg_accounts"
 
 
-class Channel(Model):
+class Dialog(Model):
     """
-    频道表
+    对话表
     """
     title = fields.CharField(max_length=50)
     username = fields.CharField(max_length=50, null=True)
+    type = fields.IntEnumField(enum_type=DialogType, default=DialogType.USER)
     status = fields.BooleanField(default=True)
     tg_id = fields.CharField(max_length=50, null=False)
     account = fields.ForeignKeyField("models.Account", related_name="channels")
 
     class Meta:
-        table = "tg_channels"
+        table = "tg_dialogs"
         indexes = [
             ("tg_id", "account_id"),
         ]
