@@ -11,6 +11,7 @@ from tortoise import Tortoise
 from app.tg.models import Account
 from cores.config import settings
 from cores.log import LOG
+from cores.messager import feishu_alarm
 from cores.model import TORTOISE_ORM
 
 
@@ -81,8 +82,7 @@ class BaseScript(metaclass=ScriptMeta):
         error_stack = traceback.format_exc()
         LOG.error(error_stack)
         # 飞书通知
-        # alarm_msg = f"脚本异常: {class_name} \n\n{error_stack}\n 告警时间: {datetime.now()}"
-        # feishu_alarm(alarm_msg)
+        feishu_alarm(class_name=class_name, stack=error_stack)
 
 
 class BaseTgScript(BaseScript):
