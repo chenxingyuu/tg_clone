@@ -18,12 +18,12 @@ class AccountChannelInfoUpdate(BaseDBScript, TGClientMethod):
 
     @classmethod
     def get_dialog_type(cls, dialog):
-        if dialog.is_user:
-            return DialogType.USER
-        elif isinstance(dialog, Chat):
+        if isinstance(dialog, Chat):
             return DialogType.CHAT
         elif isinstance(dialog, ChatForbidden):
             return DialogType.CHAT_FORBIDDEN
+        elif dialog.is_user:
+            return DialogType.USER
         elif dialog.is_group:
             return DialogType.GROUP
         else:
