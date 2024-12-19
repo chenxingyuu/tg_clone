@@ -10,7 +10,7 @@ from telethon import TelegramClient
 from app.tg.models import Account
 from cores.config import settings
 from cores.log import LOG
-from cores.redis import ASYNC_REDIS
+from cores.redis import REDIS
 from crontabs.base import BaseDBScript
 
 
@@ -22,7 +22,7 @@ class AccountLogin(BaseDBScript):
     """
 
     def __init__(self):
-        self.redis = ASYNC_REDIS
+        self.redis = REDIS
         self.code_name_prefix = "tg:code:{phone}"
 
     @classmethod
