@@ -29,8 +29,11 @@ class Channel(Model):
     title = fields.CharField(max_length=50)
     username = fields.CharField(max_length=50, null=True)
     status = fields.BooleanField(default=True)
-    tg_id = fields.CharField(max_length=50, unique=True, null=False)
+    tg_id = fields.CharField(max_length=50, null=False)
     account = fields.ForeignKeyField("models.Account", related_name="channels")
 
     class Meta:
         table = "tg_channels"
+        indexes = [
+            ("tg_id", "account_id"),
+        ]
