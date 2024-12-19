@@ -155,7 +155,7 @@ class TGClientMethod:
         )
 
     @classmethod
-    async def start_client(cls, client: TelegramClient, account: Account, code_callback):
+    async def start_client(cls, client: TelegramClient, account: Account, code_callback=None):
         """
         启动客户端
         :param client:
