@@ -33,24 +33,27 @@ class AccountChannelInfoUpdate(BaseDBScript, TGClientMethod):
         async for dialog in client.iter_dialogs():
             # 转换为实体
             dialog_entity = await client.get_entity(dialog.id)
+            LOG.info(f"Dialog: {dialog_entity.to_dict()}")
 
             # 获取对话类型
             dialog_type = self.get_dialog_type(dialog)
+            dialog_title = dialog_entity.title if dialog_type != DialogType.USER else dialog_entity.first_name
+            dialog_username = dialog_entity.username
 
             # 判断是否存在
             dialog_info, created = await Dialog.update_or_create(
                 tg_id=dialog.id,
                 account_id=account.id,
                 defaults={
-                    "title": dialog_entity.title,
-                    "username": dialog_entity.username,
+                    "title": dialog_title,
+                    "username": dialog_username,
                     "type": dialog_type,
                 }
             )
             if created:
-                LOG.info(f"Dialog created. Dialog: {dialog_info}, Created: {created}")
+                LOG.info(f"Dialog created. Dialog: {dialog_info.username}, Created: {created}")
             else:
-                LOG.info(f"Dialog updated. Dialog: {dialog_info}, Created: {created}")
+                LOG.info(f"Dialog updated. Dialog: {dialog_info.username}, Created: {created}")
         client.disconnect()
 
     async def __call__(self, *args, **kwargs):
