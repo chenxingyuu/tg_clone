@@ -1,6 +1,6 @@
 import asyncio
 
-from app.tg.models import Account
+from app.tg.models import Account, Channel
 from cores.log import LOG
 from crontabs.base import TGClientMethod, BaseDBScript
 
@@ -20,16 +20,27 @@ class AccountChannelInfoUpdate(BaseDBScript, TGClientMethod):
         # 启动客户端
         await self.start_client(client=client, account=account)
         # 获取频道信息
-        channels = await client.get_dialogs()
-        for channel in channels:
-            if channel.is_channel:
+        async for dialog in client.iter_dialogs():
+            # 判断是否是频道
+            if dialog.is_channel:
+                # 转成频道
+                channel = await client.get_entity(dialog.id)
                 LOG.info(channel.to_dict())
                 # 保存频道信息
-                pass
+                channel_info = await Channel.get_or_none(tg_id=channel.id)
+                if not channel_info:
+                    channel_info = Channel()
+                channel_info.title = channel.title
+                channel_info.tg_id = channel.id
+                channel_info.username = channel.username
+                channel_info.account_id = account.id
+                await channel_info.save()
+                LOG.info(f"Channel info saved. Channel: {channel_info}")
+
         client.disconnect()
 
     async def __call__(self, *args, **kwargs):
-        account_list = await Account.all()
+        account_list = await Account.filter(status=True).all()
         await asyncio.gather(*[self.update_channel_info(account) for account in account_list])
 
 
