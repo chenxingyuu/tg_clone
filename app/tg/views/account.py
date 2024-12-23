@@ -1,9 +1,10 @@
-from fastapi import Security, APIRouter, Depends
+from fastapi import Security, APIRouter, Depends, HTTPException
+from tortoise.contrib.fastapi import HTTPNotFoundError
 
 from app.system.views.auth import get_current_active_user
 from app.tg.filters import ListAccountFilterSet
 from app.tg.models import Account
-from app.tg.serializers.account import AccountDetail, AccountCreate
+from app.tg.serializers.account import AccountDetail, AccountCreate, AccountPatch
 from cores.paginate import PageModel, PaginationParams, paginate
 from cores.response import ResponseModel
 
@@ -42,3 +43,26 @@ async def list_accounts(
     query = account_filter.apply_filters()
     page_data = await paginate(query, pagination, AccountDetail)
     return ResponseModel(data=page_data)
+
+
+@account_router.patch(
+    "/{account_id}",
+    summary="部分更新账号信息",
+    response_model=ResponseModel[AccountDetail],
+    responses={404: {"model": HTTPNotFoundError}},
+    dependencies=[Security(get_current_active_user, scopes=["tg:account:update"])],
+)
+async def patch_account(account_id: int, account: AccountPatch):
+    """
+    部分更新指定 ID 账号的信息。
+    - **account_id**: 要更新的账号的唯一标识符。
+    - **account**: 更新后的账号详细信息（仅更新提供的字段）。
+    """
+    account_obj = await account.get_queryset().get_or_none(id=account_id)
+    if not account_obj:
+        raise HTTPException(status_code=404, detail=f"account {account_id} not found")
+
+    await account.get_queryset().filter(id=account_id).update(**account.dict(exclude_unset=True))
+    updated_account = account.get_queryset().get(id=account_id)
+    response = await AccountDetail.from_queryset_single(updated_account)
+    return ResponseModel(data=response)
