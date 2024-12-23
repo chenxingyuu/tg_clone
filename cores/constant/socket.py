@@ -17,7 +17,11 @@ class SioEvent(Enum):
     ENTER_ROOM = "enter_room"
     LEAVE_ROOM = "leave_room"
     CLOSE_ROOM = "close_room"
+    TG_ACCOUNT_LOGIN = "tg_account_login"  # 账户登录
 
     # 后端发送
     SYSTEM_NOTIFY = "system_notify"  # 系统通知、浏览器通知
     NOTIFY_MESSAGE = "notify_message"  # 系统内部通知
+    TG_ACCOUNT_LOGIN_UPDATE = "tg_account_login_update"  # 账户登录状态更新
+    TG_ACCOUNT_LOGIN_SUCCESS = "tg_account_login_success"  # 账户登录成功
+    TG_ACCOUNT_LOGIN_ERROR = "tg_account_login_error"  # 账户登录失败

@@ -20,3 +20,6 @@ class DialogType(IntEnum):
     CHANNEL = 3
     CHAT = 4
     CHAT_FORBIDDEN = 5
+
+
+ACCOUNT_LOGIN_CHANNEL = "tg:login_task:channel"

@@ -2,8 +2,10 @@ from jose import JWTError
 from passlib.exc import InvalidTokenError
 
 from cores.constant.socket import WsMessage, SioEvent
+from cores.constant.tg import ACCOUNT_LOGIN_CHANNEL
 from cores.jwt import verify_token
 from cores.log import LOG
+from cores.redis import ASYNC_REDIS
 from cores.sio import sio
 
 
@@ -45,3 +47,11 @@ async def close(sid, message: WsMessage):
     LOG.info(f"客户端 {sid} 关闭房间 {message.room}")
 
 
+@sio.on(SioEvent.TG_ACCOUNT_LOGIN.value)
+async def tg_account_login(sid, phone: str):
+    LOG.info(f"客户端 {sid} 请求登录账户 {phone}")
+    # 进入房间
+    await sio.enter_room(sid=sid, room=phone)
+    # 通知中台 crontabs/account/login.py 启动登录程序
+    await ASYNC_REDIS.publish(ACCOUNT_LOGIN_CHANNEL, phone)
+    await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_UPDATE.value, data=f"{phone}正在启动登录", room=phone)

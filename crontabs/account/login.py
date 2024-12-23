@@ -3,10 +3,18 @@ import functools
 import time
 from datetime import datetime, timedelta
 
+import socketio
+
 from app.tg.models import Account
+from cores.config import settings
+from cores.constant.socket import SioEvent
+from cores.constant.tg import ACCOUNT_LOGIN_CHANNEL
 from cores.log import LOG
 from cores.redis import REDIS
 from crontabs.base import BaseDBScript, TGClientMethod
+
+redis_manager = socketio.AsyncRedisManager(settings.redis.db_url)
+sio = socketio.AsyncServer(client_manager=redis_manager)
 
 
 class AccountLogin(BaseDBScript, TGClientMethod):
@@ -18,6 +26,9 @@ class AccountLogin(BaseDBScript, TGClientMethod):
 
     def __init__(self):
         self.redis = REDIS
+        self.async_redis = REDIS
+        self.task_channel_name = ACCOUNT_LOGIN_CHANNEL
+        self.pub = self.async_redis.pubsub()
         self.code_name_prefix = "tg:code:{phone}"
 
     def get_code_from_redis(self, phone, timeout=60):
@@ -26,13 +37,16 @@ class AccountLogin(BaseDBScript, TGClientMethod):
         now = datetime.now()
         end = now + timedelta(seconds=timeout)
         name = self.code_name_prefix.format(phone=phone)
+        asyncio.create_task(self.send_login_update_message(phone, f"{phone}正在等待验证码..."))
         while now < end:
             if code := self.redis.get(name):
                 self.redis.delete(name)
                 LOG.info(f"Get code from redis. Phone: {phone}, Code: {code}")
+                asyncio.create_task(self.send_login_update_message(phone, f"{phone}验证码获取成功，验证码：{code}，正在登录..."))
                 return code
             else:
                 LOG.info(f"Code not found in redis. Name: {name}")
+                asyncio.create_task(self.send_login_update_message(phone, f"{phone}验证码获取失败，正在等待..."))
             time.sleep(1)
             now = datetime.now()
         return None
@@ -46,9 +60,11 @@ class AccountLogin(BaseDBScript, TGClientMethod):
         code_callback = functools.partial(self.get_code_from_redis, account.phone)
         # 启动客户端
         await self.start_client(client=client, account=account, code_callback=code_callback)
+        await self.send_login_update_message(account.phone, f"{account.phone}登录成功，正在获取账号信息...")
         # 获取账号信息
         me = await client.get_me()
         LOG.info(me.to_dict())
+        await self.send_login_update_message(account.phone, f"{account.phone}账号信息获取成功，正在保存账号信息...")
         # 保存账号信息
         account.username = me.username or ""
         account.first_name = me.first_name or ""
@@ -56,8 +72,22 @@ class AccountLogin(BaseDBScript, TGClientMethod):
         account.tg_id = me.id
         await account.save()
         LOG.info(f"Account saved. Account: {account}")
+        await self.send_login_update_message(account.phone, f"{account.phone}账号信息保存成功，正在同步对话信息...")
         # 关闭客户端
         client.disconnect()
+        await self.send_login_update_message(account.phone, f"{account.phone}登录成功，关闭客户端...")
+
+    @classmethod
+    async def send_login_update_message(cls, phone: str, message: str):
+        await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_UPDATE, data=message, room=phone)
+
+    @classmethod
+    async def send_login_success(cls, phone: str):
+        await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_SUCCESS, room=phone)
+
+    @classmethod
+    async def send_login_error(cls, phone: str):
+        await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_ERROR, room=phone)
 
     async def __call__(self, *args, **kwargs):
         """
@@ -67,10 +97,24 @@ class AccountLogin(BaseDBScript, TGClientMethod):
         :param kwargs:
         :return:
         """
-        # TODO 通过任务触发，而不是直接调用
-        account_list = await Account.all()
-        # 初始化客户端
-        await asyncio.gather(*(self.init_client(account) for account in account_list))
+        # 订阅任务通道
+        LOG.info(f"Subscribe task channel. Channel: {self.task_channel_name}")
+        self.pub.subscribe(self.task_channel_name)
+        # 监听任务
+        for message in self.pub.listen():
+            LOG.info(f"Receive message. Message: {message}")
+            if message["type"] == "message":
+                phone = message["data"]
+                LOG.info(f"Receive phone. Phone: {phone}")
+                # 发送消息给前端
+                await self.send_login_update_message(phone, f"{phone}正在启动登录...")
+                # 获取账号
+                account = await Account.get(phone=phone)
+                await self.send_login_update_message(phone, f"{phone}账号信息获取成功，正在初始化客户端...")
+                # 初始化客户端
+                await self.init_client(account)
+                # 发送登录成功消息
+                await self.send_login_success(phone)
 
 
 async def main():
