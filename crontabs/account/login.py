@@ -8,7 +8,7 @@ import socketio
 from app.tg.models import Account
 from cores.config import settings
 from cores.constant.socket import SioEvent
-from cores.constant.tg import ACCOUNT_LOGIN_CHANNEL, ACCOUNT_LOGIN_CODE
+from cores.constant.tg import ACCOUNT_LOGIN_CHANNEL, ACCOUNT_LOGIN_CODE, AccountStatus
 from cores.log import LOG
 from cores.redis import REDIS
 from crontabs.base import BaseDBScript, TGClientMethod
@@ -66,6 +66,7 @@ class AccountLogin(BaseDBScript, TGClientMethod):
         account.username = me.username or ""
         account.first_name = me.first_name or ""
         account.last_name = me.last_name or ""
+        account.status = AccountStatus.NORMAL
         account.tg_id = me.id
         await account.save()
         LOG.info(f"Account saved. Account: {account}")
