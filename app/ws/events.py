@@ -2,7 +2,7 @@ from jose import JWTError
 from passlib.exc import InvalidTokenError
 
 from cores.constant.socket import WsMessage, SioEvent
-from cores.constant.tg import ACCOUNT_LOGIN_CHANNEL
+from cores.constant.tg import ACCOUNT_LOGIN_CHANNEL, ACCOUNT_LOGIN_CODE
 from cores.jwt import verify_token
 from cores.log import LOG
 from cores.redis import ASYNC_REDIS
@@ -59,3 +59,14 @@ async def tg_account_login(sid: str, phone: str):
     # 通知客户端正在启动登录
     LOG.info(f"通知客户端正在启动登录 {phone}")
     await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_UPDATE.value, data=f"{phone}正在启动登录", room=phone)
+
+
+@sio.on(SioEvent.TG_ACCOUNT_LOGIN_CODE.value)
+async def tg_account_login_code(sid: str, phone: str, code: str):
+    LOG.info(f"客户端 {sid} 请求登录账户 {phone} 验证码 {code}")
+    # redis 设置验证码
+    LOG.info(f"设置验证码 {phone} {code}")
+    await ASYNC_REDIS.set(ACCOUNT_LOGIN_CODE.format(phone=phone), code, ex=300)
+    # 通知客户端验证码设置成功
+    LOG.info(f"通知客户端验证码设置成功 {phone} {code}")
+    await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_UPDATE.value, data=f"{phone}验证码设置成功", room=phone)

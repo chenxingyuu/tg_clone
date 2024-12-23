@@ -23,3 +23,4 @@ class DialogType(IntEnum):
 
 
 ACCOUNT_LOGIN_CHANNEL = "tg:login_task:channel"
+ACCOUNT_LOGIN_CODE = "tg:code:{phone}"

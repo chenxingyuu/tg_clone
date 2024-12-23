@@ -8,7 +8,7 @@ import socketio
 from app.tg.models import Account
 from cores.config import settings
 from cores.constant.socket import SioEvent
-from cores.constant.tg import ACCOUNT_LOGIN_CHANNEL
+from cores.constant.tg import ACCOUNT_LOGIN_CHANNEL, ACCOUNT_LOGIN_CODE
 from cores.log import LOG
 from cores.redis import REDIS
 from crontabs.base import BaseDBScript, TGClientMethod
@@ -39,7 +39,7 @@ class AccountLogin(BaseDBScript, TGClientMethod):
         self.async_redis = REDIS
         self.task_channel_name = ACCOUNT_LOGIN_CHANNEL
         self.pub = self.async_redis.pubsub()
-        self.code_name_prefix = "tg:code:{phone}"
+        self.code_name_prefix = ACCOUNT_LOGIN_CODE
 
     def get_code_from_redis(self, phone, timeout=60):
         """从 redis 中获取验证码"""
