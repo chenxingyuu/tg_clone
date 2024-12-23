@@ -58,11 +58,11 @@ async def patch_account(account_id: int, account: AccountPatch):
     - **account_id**: 要更新的账号的唯一标识符。
     - **account**: 更新后的账号详细信息（仅更新提供的字段）。
     """
-    account_obj = await account.get_queryset().get_or_none(id=account_id)
+    account_obj = await Account.get_queryset().get_or_none(id=account_id)
     if not account_obj:
         raise HTTPException(status_code=404, detail=f"account {account_id} not found")
 
-    await account.get_queryset().filter(id=account_id).update(**account.dict(exclude_unset=True))
-    updated_account = account.get_queryset().get(id=account_id)
+    await Account.get_queryset().filter(id=account_id).update(**account.dict(exclude_unset=True))
+    updated_account = Account.get_queryset().get(id=account_id)
     response = await AccountDetail.from_queryset_single(updated_account)
     return ResponseModel(data=response)
