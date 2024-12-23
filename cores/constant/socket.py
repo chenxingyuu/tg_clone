@@ -18,7 +18,7 @@ class SioEvent(Enum):
     LEAVE_ROOM = "leave_room"
     CLOSE_ROOM = "close_room"
     TG_ACCOUNT_LOGIN = "tg_account_login"  # 账户登录
-    TG_ACCOUNT_LOGIN_CODE = "tg_account_login:code"  # 账户登录验证码
+    TG_ACCOUNT_LOGIN_CODE = "tg_account_send_code"  # 账户登录验证码
 
     # 后端发送
     SYSTEM_NOTIFY = "system_notify"  # 系统通知、浏览器通知
