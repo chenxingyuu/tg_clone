@@ -1,6 +1,6 @@
 from tortoise import fields
 
-from cores.constant.tg import DialogType
+from cores.constant.tg import DialogType, AccountStatus
 from cores.model import Model
 
 
@@ -13,7 +13,7 @@ class Account(Model):
     password = fields.CharField(max_length=50, default="", null=False)
     api_id = fields.CharField(max_length=50, default="", null=False)
     api_hash = fields.CharField(max_length=50, default="")
-    status = fields.BooleanField(default=True)
+    status = fields.IntEnumField(enum_type=AccountStatus, default=AccountStatus.EXPIRED)
     username = fields.CharField(max_length=50, default="", null=False)
     first_name = fields.CharField(max_length=50, default="", null=False)
     last_name = fields.CharField(max_length=50, default="", null=False)
