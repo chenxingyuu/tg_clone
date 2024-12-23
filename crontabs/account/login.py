@@ -79,15 +79,15 @@ class AccountLogin(BaseDBScript, TGClientMethod):
 
     @classmethod
     async def send_login_update_message(cls, phone: str, message: str):
-        await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_UPDATE, data=message, room=phone)
+        await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_UPDATE.value, data=message, room=phone)
 
     @classmethod
     async def send_login_success(cls, phone: str):
-        await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_SUCCESS, room=phone)
+        await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_SUCCESS.value, room=phone)
 
     @classmethod
     async def send_login_error(cls, phone: str):
-        await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_ERROR, room=phone)
+        await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_ERROR.value, room=phone)
 
     async def __call__(self, *args, **kwargs):
         """

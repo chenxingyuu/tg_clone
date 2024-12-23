@@ -42,16 +42,20 @@ async def leave(sid, message: WsMessage):
 
 
 @sio.on(SioEvent.CLOSE_ROOM.value)
-async def close(sid, message: WsMessage):
+async def close(sid: str, message: WsMessage):
     await sio.close_room(sid=sid, room=message.room)
     LOG.info(f"客户端 {sid} 关闭房间 {message.room}")
 
 
 @sio.on(SioEvent.TG_ACCOUNT_LOGIN.value)
-async def tg_account_login(sid, phone: str):
+async def tg_account_login(sid: str, phone: str):
     LOG.info(f"客户端 {sid} 请求登录账户 {phone}")
     # 进入房间
+    LOG.info(f"客户端 {sid} 进入房间 {phone}")
     await sio.enter_room(sid=sid, room=phone)
     # 通知中台 crontabs/account/login.py 启动登录程序
+    LOG.info(f"通知中台启动登录程序 {phone}")
     await ASYNC_REDIS.publish(ACCOUNT_LOGIN_CHANNEL, phone)
+    # 通知客户端正在启动登录
+    LOG.info(f"通知客户端正在启动登录 {phone}")
     await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_UPDATE.value, data=f"{phone}正在启动登录", room=phone)
