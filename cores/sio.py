@@ -14,4 +14,3 @@ sio: SocketManager = None
 def attach_socketio(app):
     global sio
     sio = SocketManager(app=app, client_manager=redis_manager)
-
