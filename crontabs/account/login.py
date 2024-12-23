@@ -17,16 +17,6 @@ redis_manager = socketio.AsyncRedisManager(settings.redis.db_url)
 sio = socketio.AsyncServer(client_manager=redis_manager)
 
 
-def _run_async(coro):
-    """在同步方法中运行异步任务"""
-    try:
-        # Python >=3.7 推荐使用 asyncio.run
-        asyncio.run(coro)
-    except RuntimeError:  # 如果事件循环已经存在（如在主线程）
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(coro)
-
-
 class AccountLogin(BaseDBScript, TGClientMethod):
     """
     登录账号，初始化客户端
@@ -47,16 +37,13 @@ class AccountLogin(BaseDBScript, TGClientMethod):
         now = datetime.now()
         end = now + timedelta(seconds=timeout)
         name = self.code_name_prefix.format(phone=phone)
-        _run_async(self.send_login_update_message(phone, f"{phone}正在等待验证码..."))
         while now < end:
             if code := self.redis.get(name):
                 self.redis.delete(name)
                 LOG.info(f"Get code from redis. Phone: {phone}, Code: {code}")
-                _run_async(self.send_login_update_message(phone, f"{phone}验证码获取成功，验证码：{code}，正在登录..."))
                 return code
             else:
                 LOG.info(f"Code not found in redis. Name: {name}")
-                _run_async(self.send_login_update_message(phone, f"{phone}验证码获取失败，正在等待..."))
             time.sleep(1)
             now = datetime.now()
         return None
