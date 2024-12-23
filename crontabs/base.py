@@ -168,7 +168,7 @@ class TGClientMethod:
             conn = client.start(phone=account.phone, password=account.password, code_callback=code_callback)
         else:
             LOG.info(f"Start client with code. Account: {account.phone}", code_callback=code_callback)
-            conn = client.start(phone=account.phone)
+            conn = client.start(phone=account.phone, code_callback=code_callback)
 
         if isawaitable(conn):
             await conn
