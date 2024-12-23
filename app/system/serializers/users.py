@@ -17,7 +17,7 @@ UserDetail = pydantic_model_creator(
     ),
 )
 
-UserCreate = pydantic_model_creator(User, name="UserCreate", include=("username",))
+UserCreate = pydantic_model_creator(User, name="UserCreate", include=("username", "email"))
 
 UserUpdate = pydantic_model_creator(
     User,
