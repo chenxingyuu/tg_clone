@@ -1,7 +1,9 @@
+import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from tortoise.contrib.fastapi import HTTPNotFoundError
+from tortoise.exceptions import DoesNotExist
 
 from app.system.models import Menu, User
 from app.system.serializers.menus import MenuDetailTree
@@ -29,14 +31,8 @@ async def get_user_me(current_user: User = Depends(get_current_active_user)):
     response_model=ResponseModel[UserDetail],
 )
 async def update_user_me(user: UserUpdate, current_user: User = Depends(get_current_active_user)):
-    updated_count = (
-        await User.get_queryset().filter(id=current_user.id).update(**user.dict(exclude_unset=True))
-    )
-    if not updated_count:
-        raise HTTPException(status_code=404, detail=f"User {current_user.id} not found")
-    user_obj = await User.get_queryset().get(id=current_user.id)
-    user_data = await UserDetail.from_tortoise_orm(user_obj)
-    return ResponseModel(data=user_data)
+    await User.get_queryset().filter(id=current_user.id).update(**user.dict(exclude_unset=True))
+    return ResponseModel()
 
 
 @user_me_router.delete(
@@ -52,10 +48,13 @@ async def delete_user_me(
     删除指定 ID 的用户。
     - **user_id**: 要删除的用户的唯一标识符。
     """
-    deleted_count = await User.get_queryset().filter(id=current_user.id).delete()
-    if not deleted_count:
+    try:
+        menu = await User.get_queryset().get(id=current_user.id)
+        User.deleted_at = datetime.datetime.now()
+        await menu.save()
+        return ResponseModel()
+    except DoesNotExist:
         raise HTTPException(status_code=404, detail=f"User {current_user.id} not found")
-    return ResponseModel(data={"deleted": deleted_count})
 
 
 @user_me_router.get(
@@ -106,6 +105,6 @@ async def get_user_me_permissions(
 async def get_user_me_menus(
     current_user: User = Depends(get_current_active_user),
 ):
-    menus = await Menu.get_queryset().filter(roles__users__id=current_user.id)
+    menus = await Menu.get_queryset().filter(roles__users__id=current_user.id).distinct()
     tree = MenuDetailTree.from_menu_list(menus=menus)
     return ResponseModel(data=tree)
