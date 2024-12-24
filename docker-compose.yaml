@@ -2,7 +2,7 @@ services:
   app:
     image: tg_clone:1.0.0
     command: python3 /app/main.py
-    restart: on-failure
+    restart: always
     volumes:
       - ./config.ini:/app/config.ini:ro
       - /root/.ssh/:/root/.ssh/:ro
@@ -12,7 +12,7 @@ services:
     image: tg_clone:1.0.0
     working_dir: /app/crontabs
     command: python3 account/login.py
-    restart: on-failure
+    restart: always
     volumes:
       - ./config.ini:/app/config.ini:ro
       - ./sessions:/app/sessions
@@ -20,7 +20,7 @@ services:
     image: tg_clone:1.0.0
     working_dir: /app/crontabs
     command: python3 account/dialog_info_sync.py
-    restart: on-failure
+    restart: always
     volumes:
       - ./config.ini:/app/config.ini:ro
       - ./sessions:/app/sessions
