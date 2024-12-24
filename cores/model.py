@@ -2,6 +2,7 @@ from tortoise import Tortoise, fields, models
 from tortoise.queryset import QuerySet
 
 from cores.config import settings
+from cores.log import LOG
 
 
 class SoftDeleteQuerySet(QuerySet):
@@ -54,8 +55,10 @@ TORTOISE_ORM = {
 
 
 async def init_db():
+    LOG.info("Initializing database...")
     await Tortoise.init(config=TORTOISE_ORM)
 
 
 async def close_db():
+    LOG.info("Closing database...")
     await Tortoise.close_connections()

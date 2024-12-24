@@ -82,7 +82,6 @@ async def get_user_me_permissions(
 ):
     # 查询用户并预加载关联的权限
     user = await User.filter(id=current_user.id).prefetch_related("roles__permissions").first()
-
     if not user:
         return []
 
@@ -93,7 +92,6 @@ async def get_user_me_permissions(
             permissions.add(permission.name)
 
     filter_permissions = filter_scopes(permissions)
-
     return ResponseModel(data=filter_permissions)
 
 

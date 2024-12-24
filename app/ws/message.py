@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from cores.constant.socket import WsMessage
-from .events import sio
+from cores.sio import sio
 
 message_router = APIRouter()
 

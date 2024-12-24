@@ -1,6 +1,7 @@
 from typing import Union, List, Set
 
 from app.system.models import Permission
+from cores.log import LOG
 
 scopes = {}
 
@@ -12,6 +13,7 @@ async def init_scopes():
         permission.name: permission.description
         for permission in await Permission.get_queryset().all()
     }
+    LOG.info(f"初始化权限范围 {scopes = }")
 
 
 def filter_scopes(scope_list: Union[List[str], Set[str]]) -> List[str]:
