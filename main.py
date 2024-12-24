@@ -6,8 +6,6 @@ from starlette.middleware.cors import CORSMiddleware
 from cores.config import settings
 from cores.fastapi_app import make_app
 
-logging.basicConfig(level=logging.DEBUG)
-
 app = make_app()
 
 # 添加 CORS 中间件

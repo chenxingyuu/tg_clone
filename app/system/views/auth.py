@@ -3,7 +3,7 @@ from typing import List, Union
 from fastapi import APIRouter, Depends, HTTPException, Security
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm, SecurityScopes
 from passlib.exc import InvalidTokenError
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, Field
 from starlette import status
 from tortoise.expressions import Q
 
@@ -21,7 +21,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/oauth2/password", sc
 
 class TokenData(BaseModel):
     username: Union[str, None] = None
-    scopes: List[str] = []
+    scopes: List[str] = Field(default_factory=list)
 
 
 async def authenticate_user(username: str, password: str) -> Union[bool, User]:
