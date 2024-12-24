@@ -8,12 +8,9 @@ UserDetail = pydantic_model_creator(
     include=(
         "id",
         "username",
+        "email",
         "is_active",
-        "is_superuser",
         "created_at",
-        "updated_at",
-        "deleted_at",
-        "creator_id",
     ),
 )
 
