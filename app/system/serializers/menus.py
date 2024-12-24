@@ -51,7 +51,7 @@ MenuDetail = pydantic_model_creator(
 
 
 class MenuDetailTree(MenuDetail2):
-    children: Optional[List["MenuDetailTree"]] = []
+    children: Optional[List["MenuDetailTree"]] = Field(default_factory=list)
 
     @classmethod
     def from_menu_list(cls, menus: List[Menu]) -> List["MenuDetailTree"]:
@@ -61,7 +61,7 @@ class MenuDetailTree(MenuDetail2):
                 name=menu.name,
                 path=menu.path,
                 components=menu.components,
-                parent_id=menu.parent_id,
+                parent_id=menu.parent_id,  # noqa
                 meta=MenuMeta(
                     locale=menu.meta_locale,
                     icon=menu.meta_icon,
@@ -74,7 +74,7 @@ class MenuDetailTree(MenuDetail2):
                 ),
             ) for menu in menus]
 
-        menu_dict = {menu.id: cls.from_orm(menu) for menu in menus}
+        menu_dict = {menu.id: cls.model_validate(menu) for menu in menus}
         tree = []
 
         for menu in menus:

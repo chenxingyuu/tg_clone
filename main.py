@@ -1,5 +1,3 @@
-import logging
-
 import uvicorn
 from starlette.middleware.cors import CORSMiddleware
 

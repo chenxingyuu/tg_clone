@@ -18,7 +18,7 @@ def create_access_token(
     expires_delta: Optional[timedelta] = timedelta(days=settings.security.token_expire_days),
 ):
     to_encode = data.copy()
-    expire = datetime.utcnow() + expires_delta
+    expire = datetime.now() + expires_delta
     to_encode.update({"exp": int(expire.timestamp())})
     return jwt.encode(
         to_encode,

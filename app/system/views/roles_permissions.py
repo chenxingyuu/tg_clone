@@ -5,7 +5,6 @@ from tortoise.contrib.fastapi import HTTPNotFoundError
 
 from app.system.models import Permission, Role
 from app.system.serializers.permission import PermissionDetail
-from app.system.serializers.roles import RoleDetail
 from app.system.views.auth import get_current_active_user
 from cores.response import ResponseModel
 
@@ -31,7 +30,7 @@ async def get_role_permissions(role_id: int):
     """
     role = await Role.get_queryset().prefetch_related("permissions").get_or_none(id=role_id)
     if not role:
-        return ResponseModel(code=404, msg=f"Role {role} not found")
+        raise HTTPException(status_code=404, detail=f"Role {role_id} not found")
 
     permissions_data = await PermissionDetail.from_queryset(role.permissions.all())
     return ResponseModel(data=permissions_data)

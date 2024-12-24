@@ -8,6 +8,6 @@ T = TypeVar("T")
 
 class FilterSet(BaseModel, Generic[T]):
     def apply_filters(self, query: QuerySet[T]) -> QuerySet[T]:
-        for key, value in self.dict(exclude_none=True).items():
+        for key, value in self.model_dump(exclude_none=True).items():
             query = query.filter(**{f"{key}__icontains": value})
         return query

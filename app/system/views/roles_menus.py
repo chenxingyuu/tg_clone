@@ -31,7 +31,7 @@ async def get_role_menus(role_id: int):
     """
     role = await Role.get_queryset().prefetch_related("menus").get_or_none(id=role_id)
     if not role:
-        return ResponseModel(code=404, msg=f"Role {role} not found")
+        raise HTTPException(status_code=404, detail=f"Role {role_id} not found")
 
     menus_data = await MenuDetail.from_queryset(role.menus.all())
     return ResponseModel(data=menus_data)

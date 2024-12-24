@@ -1,3 +1,5 @@
+from typing import Optional
+
 import socketio
 from fastapi_socketio import SocketManager
 
@@ -8,7 +10,7 @@ from cores.log import LOG
 redis_manager = socketio.AsyncRedisManager(settings.redis.db_url)
 
 # 定义 Socket.IO 实例
-sio: SocketManager = None
+sio: Optional[SocketManager] = None
 
 
 # 将 Socket.IO 附加到 FastAPI 应用的函数
