@@ -32,31 +32,19 @@ class AccountLogin(BaseDBScript, TGClientMethod):
         self.code_name_prefix = ACCOUNT_LOGIN_CODE
 
     def get_code_from_redis(self, phone, timeout=60):
-        """从 redis 中获取验证码"""
         LOG.info(f"Get code from redis. Phone: {phone}")
-        now = datetime.now()
-        end = now + timedelta(seconds=timeout)
+        end = datetime.now() + timedelta(seconds=timeout)
         name = self.code_name_prefix.format(phone=phone)
-        while now < end:
+        while datetime.now() < end:
             if code := self.redis.get(name):
                 self.redis.delete(name)
                 LOG.info(f"Get code from redis. Phone: {phone}, Code: {code}")
                 return code
-            else:
-                LOG.info(f"Code not found in redis. Name: {name}")
+            LOG.info(f"Code not found in redis. Name: {name}")
             time.sleep(1)
-            now = datetime.now()
         return None
 
-    async def init_client(self, account: Account):
-        # 获取客户端
-        client = self.get_client(account)
-        # 如果 session 文件不存在，则需要重新登录
-        LOG.info(f"Start client. Account: {account.phone}")
-        # 验证码，从redis中获取验证码
-        code_callback = functools.partial(self.get_code_from_redis, account.phone)
-        # 启动客户端
-        await self.start_client(client=client, account=account, code_callback=code_callback)
+    async def save_account_info(self, account, client):
         await self.send_login_update_message(account.phone, f"{account.phone}登录成功，正在获取账号信息...")
         # 获取账号信息
         me = await client.get_me()
@@ -70,7 +58,18 @@ class AccountLogin(BaseDBScript, TGClientMethod):
         account.tg_id = me.id
         await account.save()
         LOG.info(f"Account saved. Account: {account}")
-        await self.send_login_update_message(account.phone, f"{account.phone}账号信息保存成功，正在同步对话信息...")
+        await self.send_login_update_message(account.phone, f"{account.phone}账号信息保存成功...")
+
+    async def init_client(self, account: Account):
+        # 获取客户端
+        client = self.get_client(account)
+        LOG.info(f"Start client. Account: {account.phone}")
+        # 验证码，从redis中获取验证码
+        code_callback = functools.partial(self.get_code_from_redis, account.phone)
+        # 启动客户端
+        await self.start_client(client=client, account=account, code_callback=code_callback)
+        # 保存账号信息
+        await self.save_account_info(account, client)
         # 关闭客户端
         client.disconnect()
         await self.send_login_update_message(account.phone, f"{account.phone}登录成功，关闭客户端...")
@@ -108,7 +107,7 @@ class AccountLogin(BaseDBScript, TGClientMethod):
                 await self.send_login_update_message(phone, f"{phone}正在启动登录...")
                 # 获取账号
                 account = await Account.get(phone=phone)
-                await self.send_login_update_message(phone, f"{phone}账号信息获取成功，正在初始化客户端...")
+                await self.send_login_update_message(phone, f"{phone}正在初始化客户端...")
                 # 初始化客户端
                 await self.init_client(account)
                 # 发送登录成功消息
