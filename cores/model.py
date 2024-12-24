@@ -6,18 +6,13 @@ from tortoise.queryset import QuerySet
 from cores.config import settings
 from cores.log import LOG
 
-LOG.level("debug", no=10, color="<blue>")
-LOG.level("info", no=20, color="<white>")
-LOG.level("warning", no=30, color="<yellow>")
-LOG.level("error", no=40, color="<red>")
-
 
 # 替换 logging 模块的 handler
 class InterceptHandler(logging.Handler):
     def emit(self, record):
-        loguru_level = record.levelname.lower()
-        if loguru_level == "warn":
-            loguru_level = "warning"
+        loguru_level = record.levelname.upper()
+        if loguru_level == "WARN":
+            loguru_level = "WARNING"
         logger_opt = LOG.opt(depth=6, exception=record.exc_info)
         logger_opt.log(loguru_level, record.getMessage())
 
