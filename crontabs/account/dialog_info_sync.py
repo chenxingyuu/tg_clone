@@ -3,8 +3,9 @@ import asyncio
 from telethon.tl.types import Chat, ChatForbidden, User, Channel
 
 from app.tg.models import Account, Dialog
-from cores.constant.tg import DialogType
+from cores.constant.tg import DialogType, ACCOUNT_DIALOG_SYNC_CHANNEL
 from cores.log import LOG
+from cores.redis import REDIS
 from crontabs.base import TGClientMethod, BaseDBScript
 
 
@@ -14,7 +15,9 @@ class AccountDialogInfoSync(BaseDBScript, TGClientMethod):
     """
 
     def __init__(self):
-        pass
+        self.async_redis = REDIS
+        self.task_channel_name = ACCOUNT_DIALOG_SYNC_CHANNEL
+        self.pub = self.async_redis.pubsub()
 
     @classmethod
     def get_dialog_type(cls, dialog):
@@ -70,8 +73,26 @@ class AccountDialogInfoSync(BaseDBScript, TGClientMethod):
         client.disconnect()
 
     async def __call__(self, *args, **kwargs):
-        account_list = await Account.filter(status=True).all()
-        await asyncio.gather(*[self.update_channel_info(account) for account in account_list])
+        """
+        任务逻辑
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        # 订阅任务通道
+        LOG.info(f"Subscribe task channel. Channel: {self.task_channel_name}")
+        self.pub.subscribe(self.task_channel_name)
+        # 监听任务
+        for message in self.pub.listen():
+            LOG.info(f"Receive message. Message: {message}")
+            if message["type"] == "message":
+                phone = message["data"]
+                LOG.info(f"Receive phone. Phone: {phone}")
+                if account := await Account.get_or_none(phone=phone):
+                    LOG.info(f"Account found. Phone: {phone}")
+                    await self.update_channel_info(account)
+                else:
+                    LOG.error(f"Account not found. Phone: {phone}")
 
 
 async def main():

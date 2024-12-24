@@ -2,7 +2,7 @@ from jose import JWTError
 from passlib.exc import InvalidTokenError
 
 from cores.constant.socket import WsMessage, SioEvent
-from cores.constant.tg import ACCOUNT_LOGIN_CHANNEL, ACCOUNT_LOGIN_CODE
+from cores.constant.tg import ACCOUNT_LOGIN_CHANNEL, ACCOUNT_LOGIN_CODE, ACCOUNT_DIALOG_SYNC_CHANNEL
 from cores.jwt import verify_token
 from cores.log import LOG
 from cores.redis import ASYNC_REDIS
@@ -70,3 +70,14 @@ async def tg_account_login_code(sid: str, phone: str, code: str):
     # 通知客户端验证码设置成功
     LOG.info(f"通知客户端验证码设置成功 {phone} {code}")
     await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_UPDATE.value, data=f"{phone}验证码设置成功", room=phone)
+
+
+@sio.on(SioEvent.TG_ACCOUNT_DIALOG_INFO_SYNC.value)
+async def tg_account_dialog_info_sync(sid: str, phone: str):
+    LOG.info(f"客户端 {sid} 请求同步账户 {phone} 对话信息")
+    # 通知中台 crontabs/account/dialog_info_sync.py 启动同步程序
+    LOG.info(f"通知中台启动同步程序 {phone}")
+    await ASYNC_REDIS.publish(ACCOUNT_DIALOG_SYNC_CHANNEL, phone)
+    # 通知客户端正在同步对话信息
+    LOG.info(f"通知客户端正在同步对话信息 {phone}")
+    await sio.emit(SioEvent.TG_ACCOUNT_DIALOG_INFO_SYNC_UPDATE.value, data=f"{phone}正在同步对话信息", room=phone)
