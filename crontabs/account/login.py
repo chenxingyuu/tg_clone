@@ -106,12 +106,16 @@ class AccountLogin(BaseDBScript, TGClientMethod):
                 # 发送消息给前端
                 await self.send_login_update_message(phone, f"{phone}正在启动登录...")
                 # 获取账号
-                account = await Account.get(phone=phone)
-                await self.send_login_update_message(phone, f"{phone}正在初始化客户端...")
-                # 初始化客户端
-                await self.init_client(account)
-                # 发送登录成功消息
-                await self.send_login_success(phone)
+                if account := await Account.get_or_none(phone=phone):
+                    LOG.info(f"Account found. Phone: {phone}")
+                    await self.send_login_update_message(phone, f"{phone}正在初始化客户端...")
+                    # 初始化客户端
+                    await self.init_client(account)
+                    # 发送登录成功消息
+                    await self.send_login_success(phone)
+                else:
+                    LOG.error(f"Account not found. Phone: {phone}")
+                    await self.send_login_error(phone)
 
 
 async def main():
