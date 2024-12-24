@@ -22,10 +22,10 @@ UserCreate = pydantic_model_creator(User, name="UserCreate", include=("username"
 UserUpdate = pydantic_model_creator(
     User,
     name="UserUpdate",
-    include=("username", "is_active"),
+    include=("username", "email", "is_active"),
 )
 UserPatch = pydantic_model_creator(
     User,
     name="UserPatch",
-    include=("username", "is_active"),
+    include=("username", "email", "is_active"),
 )
