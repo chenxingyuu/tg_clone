@@ -21,6 +21,7 @@ UserUpdate = pydantic_model_creator(
     name="UserUpdate",
     include=("username", "email", "is_active"),
 )
+
 UserPatch = pydantic_model_creator(
     User,
     name="UserPatch",

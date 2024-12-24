@@ -40,7 +40,7 @@ async def get_user_roles(user_id: int):
 @user_role_route.post(
     "/{user_id}/roles",
     summary="为用户添加角色",
-    response_model=ResponseModel[List[RoleDetail]],
+    response_model=ResponseModel,
     dependencies=[
         Security(
             get_current_active_user,
@@ -65,18 +65,14 @@ async def add_role_to_user(user_id: int, role_ids: List[int]):
         )
 
     await user.roles.add(*roles)
-
-    # 获取更新后的用户数据
-    updated_user = User.get_queryset().get(id=user_id)
-    role_data = await RoleDetail.from_queryset(updated_user.roles.all())
-    return ResponseModel(data=role_data)
+    return ResponseModel()
 
 
 # 用户修改角色
 @user_role_route.put(
     "/{user_id}/roles",
     summary="修改用户角色",
-    response_model=ResponseModel[List[RoleDetail]],
+    response_model=ResponseModel,
     dependencies=[
         Security(
             get_current_active_user,
@@ -103,17 +99,14 @@ async def update_roles_for_user(user_id: int, role_ids: List[int]):
     await user.roles.clear()
     await user.roles.add(*roles)
 
-    # 获取更新后的用户数据
-    updated_user = await User.get_queryset().prefetch_related("roles").get(id=user_id)
-    role_data = await RoleDetail.from_orm(updated_user)
-    return ResponseModel(data=role_data)
+    return ResponseModel()
 
 
 # 用户删除角色
 @user_role_route.delete(
     "/{user_id}/roles",
     summary="删除用户角色",
-    response_model=ResponseModel[List[RoleDetail]],
+    response_model=ResponseModel,
     dependencies=[
         Security(
             get_current_active_user,
@@ -139,7 +132,4 @@ async def delete_roles_from_user(user_id: int, role_ids: List[int]):
 
     await user.roles.remove(*roles)
 
-    # 获取更新后的用户数据
-    updated_user = await User.get_queryset().get(id=user_id)
-    role_data = await RoleDetail.from_queryset(updated_user.roles.all())
-    return ResponseModel(data=role_data)
+    return ResponseModel()

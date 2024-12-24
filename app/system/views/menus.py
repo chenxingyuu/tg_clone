@@ -88,12 +88,8 @@ async def all_menus_tree(
     获取所有菜单的列表，可以按名称和描述进行搜索，以树形结构返回。
     """
     menus = await menu_filter.apply_filters()
-
     tree = MenuDetailTree.from_menu_list(menus=menus)
-
     return ResponseModel(data=tree)
-
-
 
 
 @menu_router.get(
@@ -119,7 +115,7 @@ async def get_menu(menu_id: int):
 @menu_router.put(
     "/{menu_id}",
     summary="更新菜单信息",
-    response_model=ResponseModel[MenuDetail],
+    response_model=ResponseModel,
     responses={404: {"model": HTTPNotFoundError}},
     dependencies=[Security(get_current_active_user, scopes=["system:menu:update"])],
 )
@@ -134,15 +130,13 @@ async def update_menu(menu_id: int, menu: MenuUpdate):
         raise HTTPException(status_code=404, detail=f"Menu {menu_id} not found")
 
     await Menu.get_queryset().filter(id=menu_id).update(**menu.dict(exclude_unset=True))
-    updated_menu = Menu.get_queryset().get(id=menu_id)
-    response = await MenuDetail.from_queryset_single(updated_menu)
-    return ResponseModel(data=response)
+    return ResponseModel()
 
 
 @menu_router.patch(
     "/{menu_id}",
     summary="部分更新菜单信息",
-    response_model=ResponseModel[MenuDetail],
+    response_model=ResponseModel,
     responses={404: {"model": HTTPNotFoundError}},
     dependencies=[Security(get_current_active_user, scopes=["system:menu:update"])],
 )
@@ -157,15 +151,13 @@ async def patch_menu(menu_id: int, menu: MenuPatch):
         raise HTTPException(status_code=404, detail=f"Menu {menu_id} not found")
 
     await Menu.get_queryset().filter(id=menu_id).update(**menu.dict(exclude_unset=True))
-    updated_menu = Menu.get_queryset().get(id=menu_id)
-    response = await MenuDetail.from_queryset_single(updated_menu)
-    return ResponseModel(data=response)
+    return ResponseModel()
 
 
 @menu_router.delete(
     "/{menu_id}",
     summary="删除菜单",
-    response_model=ResponseModel[dict],
+    response_model=ResponseModel,
     responses={404: {"model": HTTPNotFoundError}},
     dependencies=[Security(get_current_active_user, scopes=["system:menu:delete"])],
 )
@@ -178,6 +170,6 @@ async def delete_menu(menu_id: int):
         menu = await Menu.get_queryset().get(id=menu_id)
         Menu.deleted_at = datetime.datetime.now()
         await menu.save()
-        return ResponseModel(data={"deleted": 1})
+        return ResponseModel()
     except DoesNotExist:
         raise HTTPException(status_code=404, detail=f"Menu {menu_id} not found")

@@ -1,3 +1,4 @@
+import datetime
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException, Security
@@ -88,7 +89,7 @@ async def get_role(role_id: int):
 @role_router.patch(
     "/{role_id}",
     summary="部分更新角色信息",
-    response_model=ResponseModel[RoleDetail],
+    response_model=ResponseModel,
     responses={404: {"model": HTTPNotFoundError}},
     dependencies=[Security(get_current_active_user, scopes=["system:role:update"])],
 )
@@ -103,15 +104,13 @@ async def patch_role(role_id: int, role: RolePatch):
         raise HTTPException(status_code=404, detail=f"Role {role_id} not found")
 
     await Role.get_queryset().filter(id=role_id).update(**role.dict(exclude_unset=True))
-    updated_role = Role.get_queryset().get(id=role_id)
-    response = await RoleDetail.from_queryset_single(updated_role)
-    return ResponseModel(data=response)
+    return ResponseModel()
 
 
 @role_router.put(
     "/{role_id}",
     summary="更新角色信息",
-    response_model=ResponseModel[RoleDetail],
+    response_model=ResponseModel,
     responses={404: {"model": HTTPNotFoundError}},
     dependencies=[Security(get_current_active_user, scopes=["system:role:update"])],
 )
@@ -126,15 +125,13 @@ async def update_role(role_id: int, role: RoleUpdate):
         raise HTTPException(status_code=404, detail=f"Role {role_id} not found")
 
     await Role.get_queryset().filter(id=role_id).update(**role.dict(exclude_unset=True))
-    updated_role = Role.get_queryset().get(id=role_id)
-    response = await RoleDetail.from_queryset_single(updated_role)
-    return ResponseModel(data=response)
+    return ResponseModel()
 
 
 @role_router.delete(
     "/{role_id}",
     summary="删除角色",
-    response_model=ResponseModel[dict],
+    response_model=ResponseModel,
     responses={404: {"model": HTTPNotFoundError}},
     dependencies=[Security(get_current_active_user, scopes=["system:role:delete"])],
 )
@@ -143,7 +140,10 @@ async def delete_role(role_id: int):
     删除指定 ID 的角色。
     - **role_id**: 要删除的角色的唯一标识符。
     """
-    deleted_count = await Role.get_queryset().filter(id=role_id).delete()
-    if not deleted_count:
+    try:
+        role = await Role.get_queryset().get(id=role_id)
+        role.deleted_at = datetime.datetime.now()
+        await role.save()
+        return ResponseModel()
+    except DoesNotExist:
         raise HTTPException(status_code=404, detail=f"Role {role_id} not found")
-    return ResponseModel(data={"deleted": deleted_count})

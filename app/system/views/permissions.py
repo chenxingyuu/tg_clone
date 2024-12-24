@@ -97,7 +97,7 @@ async def get_permission(permission_id: int):
 @permission_router.put(
     "/{permission_id}",
     summary="更新权限信息",
-    response_model=ResponseModel[PermissionDetail],
+    response_model=ResponseModel,
     responses={404: {"model": HTTPNotFoundError}},
     dependencies=[Security(get_current_active_user, scopes=["system:permission:update"])],
 )
@@ -114,15 +114,13 @@ async def update_permission(permission_id: int, permission: PermissionUpdate):
     await Permission.get_queryset().filter(id=permission_id).update(
         **permission.dict(exclude_unset=True)
     )
-    updated_permission = Permission.get_queryset().get(id=permission_id)
-    response = await PermissionDetail.from_queryset_single(updated_permission)
-    return ResponseModel(data=response)
+    return ResponseModel()
 
 
 @permission_router.patch(
     "/{permission_id}",
     summary="部分更新权限信息",
-    response_model=ResponseModel[PermissionDetail],
+    response_model=ResponseModel,
     responses={404: {"model": HTTPNotFoundError}},
     dependencies=[Security(get_current_active_user, scopes=["system:permission:update"])],
 )
@@ -139,15 +137,13 @@ async def patch_permission(permission_id: int, permission: PermissionPatch):
     await Permission.get_queryset().filter(id=permission_id).update(
         **permission.dict(exclude_unset=True)
     )
-    updated_permission = Permission.get_queryset().get(id=permission_id)
-    response = await PermissionDetail.from_queryset_single(updated_permission)
-    return ResponseModel(data=response)
+    return ResponseModel()
 
 
 @permission_router.delete(
     "/{permission_id}",
     summary="删除权限",
-    response_model=ResponseModel[dict],
+    response_model=ResponseModel,
     responses={404: {"model": HTTPNotFoundError}},
     dependencies=[Security(get_current_active_user, scopes=["system:permission:delete"])],
 )
@@ -160,6 +156,6 @@ async def delete_permission(permission_id: int):
         permission = await Permission.get_queryset().get(id=permission_id)
         permission.deleted_at = datetime.datetime.now()
         await permission.save()
-        return ResponseModel(data={"deleted": 1})
+        return ResponseModel()
     except DoesNotExist:
         raise HTTPException(status_code=404, detail=f"Permission {permission_id} not found")
