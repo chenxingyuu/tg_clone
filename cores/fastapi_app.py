@@ -18,10 +18,10 @@ def register_routes(_app: FastAPI):
     from app.tg.urls import router as tg_router
     from app.ws.urls import router as sio_router
 
-    _app.include_router(common_router)
-    _app.include_router(system_router)
-    _app.include_router(tg_router)
-    _app.include_router(sio_router)
+    _app.include_router(common_router, prefix=settings.app.api_version)
+    _app.include_router(system_router, prefix=settings.app.api_version)
+    _app.include_router(tg_router, prefix=settings.app.api_version)
+    _app.include_router(sio_router, prefix=settings.app.api_version)
     LOG.info("Routes registered.")
 
 
@@ -62,6 +62,5 @@ def make_app():
         lifespan=lifespan,
         docs_url=settings.app.doc_path,
         redoc_url=None,
-        root_path=settings.app.api_version,
         openapi_url=f"{settings.app.doc_path}.json",
     )
