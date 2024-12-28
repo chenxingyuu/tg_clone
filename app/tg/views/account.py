@@ -1,3 +1,5 @@
+from typing import List
+
 from fastapi import Security, APIRouter, Depends, HTTPException
 from tortoise.contrib.fastapi import HTTPNotFoundError
 
@@ -43,6 +45,23 @@ async def list_accounts(
     query = account_filter.apply_filters()
     page_data = await paginate(query, pagination, AccountDetail)
     return ResponseModel(data=page_data)
+
+
+@account_router.get(
+    "/all",
+    summary="获取全部TG账户列表",
+    response_model=ResponseModel[List[AccountDetail]],
+    dependencies=[Security(get_current_active_user, scopes=["tg:account:read"])],
+)
+async def list_accounts_all(
+    account_filter: ListAccountFilterSet = Depends(),
+):
+    """
+    获取所有TG账户的列表。
+    """
+    query = account_filter.apply_filters()
+    account_data = await AccountDetail.from_queryset(query)
+    return ResponseModel(data=account_data)
 
 
 @account_router.patch(

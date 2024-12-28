@@ -73,11 +73,7 @@ async def get_current_user(
     except (InvalidTokenError, ValidationError):
         raise credentials_exception
 
-    user = (
-        await User.get_queryset()
-        .prefetch_related("roles__permissions")
-        .get_or_none(username=username)
-    )
+    user = await User.get_queryset().get_or_none(username=username)
     if user is None:
         raise credentials_exception
 
