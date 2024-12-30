@@ -2,11 +2,12 @@ from typing import List
 
 from fastapi import Security, APIRouter, Depends, HTTPException
 from tortoise.contrib.fastapi import HTTPNotFoundError
+from tortoise.functions import Count
 
 from app.system.views.auth import get_current_active_user
 from app.tg.filters import ListAccountFilterSet
 from app.tg.models import Account
-from app.tg.serializers.account import AccountDetail, AccountCreate, AccountPatch
+from app.tg.serializers.account import AccountDetail, AccountCreate, AccountPatch, AccountDetailPagination
 from cores.paginate import PageModel, PaginationParams, paginate
 from cores.response import ResponseModel
 
@@ -32,7 +33,7 @@ async def create_account(account: AccountCreate):
 @account_router.get(
     "",
     summary="获取TG账户列表",
-    response_model=ResponseModel[PageModel[AccountDetail]],
+    response_model=ResponseModel[PageModel[AccountDetailPagination]],
     dependencies=[Security(get_current_active_user, scopes=["tg:account:read"])],
 )
 async def list_accounts(
@@ -42,8 +43,8 @@ async def list_accounts(
     """
     获取所有TG账户的列表。
     """
-    query = account_filter.apply_filters()
-    page_data = await paginate(query, pagination, AccountDetail)
+    query = account_filter.apply_filters().annotate(dialog_count=Count("channels"))
+    page_data = await paginate(query, pagination, AccountDetailPagination)
     return ResponseModel(data=page_data)
 
 

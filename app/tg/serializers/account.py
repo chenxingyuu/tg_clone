@@ -5,10 +5,12 @@ from app.tg.models import Account
 AccountDetail = pydantic_model_creator(
     Account,
     name="AccountDetail",
-    include=(
-        "id", "name", "phone", "first_name", "last_name", "tg_id", "status", "api_id", "api_hash", "channel_count"
-    ),
 )
+
+
+class AccountDetailPagination(AccountDetail):
+    dialog_count: int
+
 
 AccountCreate = pydantic_model_creator(
     Account,
@@ -18,5 +20,4 @@ AccountCreate = pydantic_model_creator(
     ),
 )
 
-AccountUpdate = AccountCreate
 AccountPatch = AccountCreate
