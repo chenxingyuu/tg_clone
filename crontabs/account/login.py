@@ -103,6 +103,7 @@ class AccountLogin(BaseDBScript, TGClientMethod, SIOClientMethod):
                     await self.send_login_error(phone)
                     raise e
 
+
 async def main():
     server = AccountLogin()
 
