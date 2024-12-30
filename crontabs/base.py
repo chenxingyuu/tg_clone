@@ -4,15 +4,20 @@ import traceback
 from inspect import isawaitable
 
 import schedule
+import socketio
 from schedule import Job
 from telethon import TelegramClient, errors
 from tortoise import Tortoise
 
 from app.tg.models import Account
 from cores.config import settings
+from cores.constant.socket import SioEvent
 from cores.log import LOG
 from cores.messager import feishu_alarm
 from cores.model import TORTOISE_ORM
+
+redis_manager = socketio.AsyncRedisManager(settings.redis.db_url)
+sio = socketio.AsyncServer(client_manager=redis_manager)
 
 
 class ScriptMeta(type):
@@ -174,6 +179,32 @@ class TGClientMethod:
             await conn
 
         LOG.info(f"Client started successfully. Account: {account.phone}")
+
+
+class SIOClientMethod:
+    @classmethod
+    async def send_login_update_message(cls, phone: str, message: str):
+        await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_UPDATE.value, data=message, room=phone)
+
+    @classmethod
+    async def send_login_success(cls, phone: str):
+        await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_SUCCESS.value, room=phone)
+
+    @classmethod
+    async def send_login_error(cls, phone: str):
+        await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_ERROR.value, room=phone)
+
+    @classmethod
+    async def send_sync_dialog_info_update_message(cls, phone: str, message: str):
+        await sio.emit(SioEvent.TG_ACCOUNT_DIALOG_INFO_SYNC_UPDATE.value, data=message, room=phone)
+
+    @classmethod
+    async def send_sync_dialog_info_success(cls, phone: str):
+        await sio.emit(SioEvent.TG_ACCOUNT_DIALOG_INFO_SYNC_UPDATE_SUCCESS.value, room=phone)
+
+    @classmethod
+    async def send_sync_dialog_info_error(cls, phone: str):
+        await sio.emit(SioEvent.TG_ACCOUNT_DIALOG_INFO_SYNC_UPDATE_ERROR.value, room=phone)
 
 
 class DemoAsyncScript(BaseScript):

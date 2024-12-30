@@ -6,10 +6,10 @@ from app.tg.models import Account, Dialog
 from cores.constant.tg import DialogType, ACCOUNT_DIALOG_SYNC_CHANNEL
 from cores.log import LOG
 from cores.redis import REDIS
-from crontabs.base import TGClientMethod, BaseDBScript
+from crontabs.base import TGClientMethod, BaseDBScript, SIOClientMethod
 
 
-class AccountDialogInfoSync(BaseDBScript, TGClientMethod):
+class AccountDialogInfoSync(BaseDBScript, TGClientMethod, SIOClientMethod):
     """
     同步账号对话信息
     """
@@ -36,13 +36,17 @@ class AccountDialogInfoSync(BaseDBScript, TGClientMethod):
         # 获取客户端
         client = self.get_client(account)
         LOG.info(f"Start client. Account: {account.phone}")
+        await self.send_sync_dialog_info_update_message(account.phone, f"{account.phone}启动客户端...")
         # 启动客户端
         await self.start_client(client=client, account=account)
+        await self.send_sync_dialog_info_update_message(account.phone, f"{account.phone}获取对话信息...")
         # 获取频道信息
         async for dialog in client.iter_dialogs():
             # 转换为实体
             dialog_entity = await client.get_entity(dialog.id)
             LOG.info(f"Dialog: {dialog_entity.to_dict()}")
+            await self.send_sync_dialog_info_update_message(account.phone,
+                                                            f"{account.phone}正在同步对话: {dialog_entity.username}...")
 
             # 获取对话类型
             dialog_type = self.get_dialog_type(dialog_entity)
@@ -70,7 +74,12 @@ class AccountDialogInfoSync(BaseDBScript, TGClientMethod):
                 LOG.info(f"Dialog created. Dialog: {dialog_info.username}, Created: {created}")
             else:
                 LOG.info(f"Dialog updated. Dialog: {dialog_info.username}, Created: {created}")
+
+        # 发送同步完成消息
+        await self.send_sync_dialog_info_update_message(account.phone, f"{account.phone}对话信息同步完成...")
+        # 关闭客户端
         client.disconnect()
+        await self.send_sync_dialog_info_update_message(account.phone, f"{account.phone}关闭客户端...")
 
     async def __call__(self, *args, **kwargs):
         """
@@ -88,11 +97,21 @@ class AccountDialogInfoSync(BaseDBScript, TGClientMethod):
             if message["type"] == "message":
                 phone = message["data"]
                 LOG.info(f"Receive phone. Phone: {phone}")
-                if account := await Account.get_or_none(phone=phone):
-                    LOG.info(f"Account found. Phone: {phone}")
-                    await self.update_channel_info(account)
-                else:
-                    LOG.error(f"Account not found. Phone: {phone}")
+                await self.send_sync_dialog_info_update_message(phone, f"{phone}正在同步对话信息...")
+                try:
+                    if account := await Account.get_or_none(phone=phone):
+                        LOG.info(f"Account found. Phone: {phone}")
+                        # 同步对话信息
+                        await self.update_channel_info(account)
+                        # 发送同步成功消息
+                        await self.send_sync_dialog_info_success(phone)
+                    else:
+                        LOG.error(f"Account not found. Phone: {phone}")
+                        raise
+                except Exception as e:
+                    LOG.error(f"Error: {e}")
+                    await self.send_sync_dialog_info_error(phone)
+                    raise e
 
 
 async def main():

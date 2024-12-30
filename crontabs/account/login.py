@@ -3,21 +3,14 @@ import functools
 import time
 from datetime import datetime, timedelta
 
-import socketio
-
 from app.tg.models import Account
-from cores.config import settings
-from cores.constant.socket import SioEvent
 from cores.constant.tg import ACCOUNT_LOGIN_CHANNEL, ACCOUNT_LOGIN_CODE, AccountStatus
 from cores.log import LOG
 from cores.redis import REDIS
-from crontabs.base import BaseDBScript, TGClientMethod
-
-redis_manager = socketio.AsyncRedisManager(settings.redis.db_url)
-sio = socketio.AsyncServer(client_manager=redis_manager)
+from crontabs.base import BaseDBScript, TGClientMethod, SIOClientMethod
 
 
-class AccountLogin(BaseDBScript, TGClientMethod):
+class AccountLogin(BaseDBScript, TGClientMethod, SIOClientMethod):
     """
     登录账号，初始化客户端
     对于第一次登录的账号，需要打开TG客户端，获取验证码，输入验证码，登录账号
@@ -74,18 +67,6 @@ class AccountLogin(BaseDBScript, TGClientMethod):
         client.disconnect()
         await self.send_login_update_message(account.phone, f"{account.phone}登录成功，关闭客户端...")
 
-    @classmethod
-    async def send_login_update_message(cls, phone: str, message: str):
-        await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_UPDATE.value, data=message, room=phone)
-
-    @classmethod
-    async def send_login_success(cls, phone: str):
-        await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_SUCCESS.value, room=phone)
-
-    @classmethod
-    async def send_login_error(cls, phone: str):
-        await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_ERROR.value, room=phone)
-
     async def __call__(self, *args, **kwargs):
         """
         任务逻辑
@@ -105,18 +86,22 @@ class AccountLogin(BaseDBScript, TGClientMethod):
                 LOG.info(f"Receive phone. Phone: {phone}")
                 # 发送消息给前端
                 await self.send_login_update_message(phone, f"{phone}正在启动登录...")
-                # 获取账号
-                if account := await Account.get_or_none(phone=phone):
-                    LOG.info(f"Account found. Phone: {phone}")
-                    await self.send_login_update_message(phone, f"{phone}正在初始化客户端...")
-                    # 初始化客户端
-                    await self.init_client(account)
-                    # 发送登录成功消息
-                    await self.send_login_success(phone)
-                else:
-                    LOG.error(f"Account not found. Phone: {phone}")
+                try:
+                    # 获取账号
+                    if account := await Account.get_or_none(phone=phone):
+                        LOG.info(f"Account found. Phone: {phone}")
+                        await self.send_login_update_message(phone, f"{phone}正在初始化客户端...")
+                        # 初始化客户端
+                        await self.init_client(account)
+                        # 发送登录成功消息
+                        await self.send_login_success(phone)
+                    else:
+                        LOG.error(f"Account not found. Phone: {phone}")
+                        raise
+                except Exception as e:
+                    LOG.error(f"Error: {e}")
                     await self.send_login_error(phone)
-
+                    raise e
 
 async def main():
     server = AccountLogin()

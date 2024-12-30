@@ -28,3 +28,5 @@ class SioEvent(Enum):
     TG_ACCOUNT_LOGIN_SUCCESS = "tg_account_login_success"  # 账户登录成功
     TG_ACCOUNT_LOGIN_ERROR = "tg_account_login_error"  # 账户登录失败
     TG_ACCOUNT_DIALOG_INFO_SYNC_UPDATE = "tg_account_dialog_info_sync_update"  # 账户对话信息同步状态更新
+    TG_ACCOUNT_DIALOG_INFO_SYNC_UPDATE_SUCCESS = "tg_account_dialog_info_sync_update_success"  # 账户对话信息同步成功
+    TG_ACCOUNT_DIALOG_INFO_SYNC_UPDATE_ERROR = "tg_account_dialog_info_sync_update_error"  # 账户对话信息同步失败
