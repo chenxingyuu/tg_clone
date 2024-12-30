@@ -200,11 +200,11 @@ class SIOClientMethod:
 
     @classmethod
     async def send_sync_dialog_info_success(cls, phone: str):
-        await sio.emit(SioEvent.TG_ACCOUNT_DIALOG_INFO_SYNC_UPDATE_SUCCESS.value, room=phone)
+        await sio.emit(SioEvent.TG_ACCOUNT_DIALOG_INFO_SYNC_SUCCESS.value, room=phone)
 
     @classmethod
     async def send_sync_dialog_info_error(cls, phone: str):
-        await sio.emit(SioEvent.TG_ACCOUNT_DIALOG_INFO_SYNC_UPDATE_ERROR.value, room=phone)
+        await sio.emit(SioEvent.TG_ACCOUNT_DIALOG_INFO_SYNC_ERROR.value, room=phone)
 
 
 class DemoAsyncScript(BaseScript):
