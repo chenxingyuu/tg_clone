@@ -86,10 +86,6 @@ class AccountLogin(BaseDBScript, TGClientMethod):
     async def send_login_error(cls, phone: str):
         await sio.emit(SioEvent.TG_ACCOUNT_LOGIN_ERROR.value, room=phone)
 
-    @classmethod
-    async def send_dialog_info_sync_command(cls, account: Account):
-        await sio.emit(SioEvent.TG_ACCOUNT_DIALOG_INFO_SYNC.value, data=account.phone)
-
     async def __call__(self, *args, **kwargs):
         """
         任务逻辑
@@ -117,8 +113,6 @@ class AccountLogin(BaseDBScript, TGClientMethod):
                     await self.init_client(account)
                     # 发送登录成功消息
                     await self.send_login_success(phone)
-                    # 同步对话信息
-                    await self.send_dialog_info_sync_command(account)
                 else:
                     LOG.error(f"Account not found. Phone: {phone}")
                     await self.send_login_error(phone)
