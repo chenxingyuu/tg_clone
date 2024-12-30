@@ -6,7 +6,7 @@ AccountDetail = pydantic_model_creator(
     Account,
     name="AccountDetail",
     include=(
-        "id", "name", "phone", "api_id", "api_hash", "channel_count"
+        "id", "name", "phone", "first_name", "last_name", "tg_id", "status", "api_id", "api_hash", "channel_count"
     ),
 )
 
