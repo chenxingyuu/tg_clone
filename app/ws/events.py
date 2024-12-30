@@ -75,6 +75,9 @@ async def tg_account_login_code(sid: str, phone: str, code: str):
 @sio.on(SioEvent.TG_ACCOUNT_DIALOG_INFO_SYNC.value)
 async def tg_account_dialog_info_sync(sid: str, phone: str):
     LOG.info(f"客户端 {sid} 请求同步账户 {phone} 对话信息")
+    # 进入房间
+    LOG.info(f"客户端 {sid} 进入房间 {phone}")
+    await sio.enter_room(sid=sid, room=phone)
     # 通知中台 crontabs/account/dialog_info_sync.py 启动同步程序
     LOG.info(f"通知中台启动同步程序 {phone}")
     await ASYNC_REDIS.publish(ACCOUNT_DIALOG_SYNC_CHANNEL, phone)
