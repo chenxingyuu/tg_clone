@@ -31,9 +31,8 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
             "config": {},
             "i18n_elements": {
                 "zh_cn": [
-                    {"tag": "markdown", "content": f"**URL: {request.method}|{request.url}** ", "text_align": "left",
+                    {"tag": "markdown", "content": f"**URL: 【{request.method}】{request.url}** ", "text_align": "left",
                      "text_size": "normal"},
-                    {"tag": "markdown", "content": f"**方法: **", "text_align": "left", "text_size": "normal"},
                     {"tag": "markdown", "content": f"**异常:** {str(exception)}", "text_align": "left", "text_size": "normal"},
                     {"tag": "markdown", "content": traceback_str, "text_align": "left", "text_size": "normal"},
                 ]
