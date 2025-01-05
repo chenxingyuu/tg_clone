@@ -32,7 +32,7 @@ class Dialog(Model):
     type = fields.IntEnumField(enum_type=DialogType, default=DialogType.USER)
     status = fields.BooleanField(default=True)
     tg_id = fields.CharField(max_length=50, null=False)
-    account = fields.ForeignKeyField("models.Account", related_name="channels")
+    account = fields.ForeignKeyField("models.Account", related_name="dialogs")
 
     class Meta:
         table = "tg_dialogs"

@@ -43,7 +43,7 @@ async def list_accounts(
     """
     获取所有TG账户的列表。
     """
-    query = account_filter.apply_filters().annotate(dialog_count=Count("channels"))
+    query = account_filter.apply_filters().annotate(dialog_count=Count("dialogs"))
     page_data = await paginate(query, pagination, AccountDetailPagination)
     return ResponseModel(data=page_data)
 

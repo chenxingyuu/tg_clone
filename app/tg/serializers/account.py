@@ -5,6 +5,7 @@ from app.tg.models import Account
 AccountDetail = pydantic_model_creator(
     Account,
     name="AccountDetail",
+    exclude=('dialogs',)
 )
 
 
