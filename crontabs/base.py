@@ -13,7 +13,7 @@ from app.tg.models import Account
 from cores.config import settings
 from cores.constant.socket import SioEvent
 from cores.log import LOG
-from cores.messager import feishu_alarm
+from cores.messager import MESSAGE_FACTORY
 from cores.model import TORTOISE_ORM
 
 redis_manager = socketio.AsyncRedisManager(settings.redis.db_url)
@@ -87,7 +87,46 @@ class BaseScript(metaclass=ScriptMeta):
         error_stack = traceback.format_exc()
         LOG.error(error_stack)
         # 飞书通知
-        feishu_alarm(class_name=class_name, stack=error_stack)
+        cls._feishu_alarm(class_name=class_name, stack=error_stack)
+
+    @classmethod
+    def _feishu_alarm(cls, class_name, stack):
+        try:
+            message_dict = {
+                "config": {},
+                "i18n_elements": {
+                    "zh_cn": [
+                        {"tag": "markdown", "content": f"**🗳脚本：** {class_name}", "text_align": "left",
+                         "text_size": "normal"},
+                        {"tag": "markdown", "content": stack, "text_align": "left", "text_size": "normal"},
+                        {
+                            "tag": "action",
+                            "layout": "default",
+                            "actions": [
+                                {
+                                    "tag": "button",
+                                    "text": {"tag": "plain_text", "content": "收到"},
+                                    "type": "default",
+                                    "complex_interaction": True,
+                                    "width": "default",
+                                    "size": "medium",
+                                }
+                            ],
+                        },
+                    ]
+                },
+                "i18n_header": {
+                    "zh_cn": {
+                        "title": {"tag": "plain_text", "content": "🚨脚本异常🚨"},
+                        "subtitle": {"tag": "plain_text", "content": ""},
+                        "template": "blue",
+                    }
+                },
+            }
+            # 发送告警信息
+            MESSAGE_FACTORY.send_alarm(message_dict)
+        except Exception as e:
+            LOG.exception(f"发送告警信息时发生错误: {e}")
 
 
 class BaseTgScript(BaseScript):
