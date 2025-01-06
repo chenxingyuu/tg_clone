@@ -10,6 +10,7 @@ from telethon import TelegramClient, errors
 from tortoise import Tortoise
 
 from app.tg.models import Account
+from cores import config
 from cores.config import settings
 from cores.constant.socket import SioEvent
 from cores.log import LOG
@@ -87,7 +88,8 @@ class BaseScript(metaclass=ScriptMeta):
         error_stack = traceback.format_exc()
         LOG.error(error_stack)
         # 飞书通知
-        cls._feishu_alarm(class_name=class_name, stack=error_stack)
+        if settings.feishu.alert:
+            cls._feishu_alarm(class_name=class_name, stack=error_stack)
 
     @classmethod
     def _feishu_alarm(cls, class_name, stack):

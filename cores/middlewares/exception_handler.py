@@ -4,6 +4,8 @@ from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
+from cores.config import settings
+from cores.log import LOG
 from cores.messager import MESSAGE_FACTORY
 
 
@@ -16,9 +18,11 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             return response
         except Exception as e:
+            LOG.exception(e)
             # 捕获异常，准备发送飞书告警
-            error_trace = traceback.format_exc()
-            await self.send_feishu_alert(request, e, error_trace)
+            if settings.feishu.alert:
+                error_trace = traceback.format_exc()
+                await self.send_feishu_alert(request, e, error_trace)
             # 返回统一的错误响应
             return JSONResponse(
                 status_code=500,

@@ -69,6 +69,7 @@ class TGConfig:
 
 @dataclass
 class FeishuConfig:
+    alert: bool
     webhook_url: str
     secret: str
 
@@ -135,6 +136,7 @@ def read_config() -> Settings:
 
     tg_config = TGConfig(**config["tg"])
     feishu_config = FeishuConfig(**config["feishu"])
+    feishu_config.alert = config.getboolean("feishu", "alert")
 
     return Settings(
         app=app_config,

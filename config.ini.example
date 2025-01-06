@@ -36,5 +36,6 @@ file_save_path = /app/data
 session_path = /app/sessions
 
 [feishu]
+alert = false
 webhook_url =
 secret =
