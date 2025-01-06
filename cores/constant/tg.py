@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from enum import IntEnum
 
 
@@ -38,8 +39,16 @@ class DialogSyncType(IntEnum):
 
 class DialogSyncStatus(IntEnum):
     """
-    对话同步状态
+    对话同步启用状态
     """
-    NORMAL = 1  # 正常
-    ABNORMAL = 2  # 异常
-    FAILED = 3  # 失败
+    ENABLE = 1  # 启用
+    DISABLE = 0  # 禁用
+
+
+@dataclass
+class DialogSyncSetting:
+    """
+    对话同步设置
+    """
+    message_reversed: bool = False  # 消息是否倒序
+    only_latest_message: bool = False  # 只同步最新消息

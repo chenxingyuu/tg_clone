@@ -49,7 +49,8 @@ class DialogSync(Model):
     from_dialog = fields.ForeignKeyField("models.Dialog", related_name="from_syncs")
     to_dialog = fields.ForeignKeyField("models.Dialog", related_name="to_syncs")
     type = fields.IntEnumField(enum_type=DialogSyncType, default=DialogSyncType.AUTO)
-    status = fields.IntEnumField(enum_type=DialogSyncStatus, default=DialogSyncStatus.NORMAL)
+    status = fields.IntEnumField(enum_type=DialogSyncStatus, default=DialogSyncStatus.ENABLE)
+    settings = fields.JSONField(null=True)
 
     class Meta:
         table = "tg_dialog_syncs"

@@ -4,7 +4,7 @@ from pydantic import Field
 from tortoise.expressions import Q
 from tortoise.queryset import QuerySet
 
-from app.tg.models import Account, Dialog
+from app.tg.models import Account, Dialog, DialogSync
 from cores.filter import FilterSet
 
 
@@ -40,6 +40,20 @@ class ListDialogFilterSet(FilterSet):
             query = query.filter(Q(account__id=self.account_id))
         if self.tg_id is not None:
             query = query.filter(Q(tg_id=self.tg_id))
+        if self.status is not None:
+            query = query.filter(Q(status=self.status))
+        return query
+
+
+class ListDialogSyncFilterSet(FilterSet):
+    account_id: Optional[int] = Field(None, description="account_id")
+    status: Optional[int] = Field(None, description="status")
+
+    def apply_filters(self, query: QuerySet[DialogSync] = None) -> QuerySet[DialogSync]:
+        if not query:
+            query = DialogSync.get_queryset().all()
+        if self.account_id is not None:
+            query = query.filter(Q(account__id=self.account_id))
         if self.status is not None:
             query = query.filter(Q(status=self.status))
         return query

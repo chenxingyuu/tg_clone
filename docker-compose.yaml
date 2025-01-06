@@ -24,3 +24,11 @@ services:
     volumes:
       - ./config.ini:/app/config.ini:ro
       - ./sessions:/app/sessions
+  tg_message_sync:
+    image: tg_clone:1.0.0
+    working_dir: /app/crontabs
+    command: python3 dialog/message_sync.py
+    restart: always
+    volumes:
+      - ./config.ini:/app/config.ini:ro
+      - ./sessions:/app/sessions
