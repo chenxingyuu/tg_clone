@@ -26,7 +26,7 @@ class ListDialogFilterSet(FilterSet):
     title: Optional[str] = Field(None, description="title")
     username: Optional[str] = Field(None, description="username")
     account_id: Optional[int] = Field(None, description="account_id")
-    tg_id: Optional[str] = Field(None, description="tg_id")
+    tg_id: Optional[int] = Field(None, description="tg_id")
     status: Optional[int] = Field(None, description="status")
 
     def apply_filters(self, query: QuerySet[Dialog] = None) -> QuerySet[Dialog]:

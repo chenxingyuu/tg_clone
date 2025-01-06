@@ -17,7 +17,7 @@ class Account(Model):
     username = fields.CharField(max_length=50, default="", null=False)
     first_name = fields.CharField(max_length=50, default="", null=False)
     last_name = fields.CharField(max_length=50, default="", null=False)
-    tg_id = fields.CharField(max_length=50, default="", null=False)
+    tg_id = fields.BigIntField(null=False)
 
     class Meta:
         table = "tg_accounts"
@@ -31,7 +31,7 @@ class Dialog(Model):
     username = fields.CharField(max_length=50, null=True)
     type = fields.IntEnumField(enum_type=DialogType, default=DialogType.USER)
     status = fields.BooleanField(default=True)
-    tg_id = fields.CharField(max_length=50, null=False)
+    tg_id = fields.BigIntField(null=False)
     account = fields.ForeignKeyField("models.Account", related_name="dialogs")
 
     class Meta:
