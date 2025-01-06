@@ -1,6 +1,6 @@
 from tortoise import fields
 
-from cores.constant.tg import DialogType, AccountStatus
+from cores.constant.tg import DialogType, AccountStatus, DialogSyncType, DialogSyncStatus
 from cores.model import Model
 
 
@@ -38,4 +38,21 @@ class Dialog(Model):
         table = "tg_dialogs"
         indexes = [
             ("tg_id", "account_id"),
+        ]
+
+
+class DialogSync(Model):
+    """
+    对话同步表
+    """
+    account = fields.ForeignKeyField("models.Account", related_name="syncs")
+    from_dialog = fields.ForeignKeyField("models.Dialog", related_name="from_syncs")
+    to_dialog = fields.ForeignKeyField("models.Dialog", related_name="to_syncs")
+    type = fields.IntEnumField(enum_type=DialogSyncType, default=DialogSyncType.AUTO)
+    status = fields.IntEnumField(enum_type=DialogSyncStatus, default=DialogSyncStatus.NORMAL)
+
+    class Meta:
+        table = "tg_dialog_syncs"
+        indexes = [
+            ("account_id", "from_dialog_id", "to_dialog_id"),
         ]

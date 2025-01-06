@@ -26,3 +26,20 @@ ACCOUNT_LOGIN_CHANNEL = "tg:login_task:channel"
 ACCOUNT_LOGIN_CODE = "tg:code:{phone}"
 
 ACCOUNT_DIALOG_SYNC_CHANNEL = "tg:dialog_sync_task:channel"
+
+
+class DialogSyncType(IntEnum):
+    """
+    对话同步类型
+    """
+    AUTO = 1  # 自动同步
+    MANUAL = 2  # 手动同步
+
+
+class DialogSyncStatus(IntEnum):
+    """
+    对话同步状态
+    """
+    NORMAL = 1  # 正常
+    ABNORMAL = 2  # 异常
+    FAILED = 3  # 失败
