@@ -1,6 +1,8 @@
 import asyncio
 from typing import List
 
+from telethon.tl.types import MessageService
+
 from app.tg.models import DialogSync
 from cores.log import LOG
 from crontabs.base import TGClientMethod, BaseDBScript, SIOClientMethod
@@ -17,13 +19,17 @@ class DialogMessageSync(BaseDBScript, TGClientMethod, SIOClientMethod):
     async def sync_dialog_message(self, account, from_dialog, to_dialog):
         # 初始化TG客户端
         client = self.get_client(account)
-        from_dialog_entity = await client.get_entity(from_dialog.id)
-        to_dialog_entity = await client.get_entity(to_dialog.id)
-
+        await self.start_client(client=client, account=account)
+        # 获取对话实体
+        from_dialog_entity = await client.get_entity(from_dialog.tg_id)
+        to_dialog_entity = await client.get_entity(to_dialog.tg_id)
         # 获取对话消息
-        async for message in client.iter_messages(from_dialog_entity):
+        async for message in client.iter_messages(from_dialog_entity, reverse=True):
+            LOG.info(f"Message: {message.to_dict()}")
+            # 跳过系统消息
+            if isinstance(message, MessageService):
+                continue
             # 发送消息
-            LOG.info(f"Sending message: {message}")
             await client.send_message(to_dialog_entity, message)
 
     async def __call__(self):
